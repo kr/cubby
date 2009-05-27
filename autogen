@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# These backticks are here to strip whitespace.
+printf `git describe` | sed 's/^v//' > version.m4
+
+# Autoreconf has a bug. It tries to run libtoolize even when it knows we're not
+# using libtool. This causes a spurious error message. Our workaround is to
+# define LIBTOOLIZE to run the "test" command.
+LIBTOOLIZE=test exec autoreconf -i -f
