@@ -18,3 +18,5 @@ version.m4
 cutcheck
 cutcheck.c
 cutgen
+core
+core.*
