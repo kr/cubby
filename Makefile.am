@@ -15,11 +15,15 @@ cubbyd_SOURCES = \
   $(shared_sources)
 
 shared_sources = \
+  dirent.c dirent.h \
   sparr.c sparr.h \
+  spht.c spht.h \
   util.c util.h
 
 unit_tests = \
-  check-sparr.c
+  check-dirent.c \
+  check-sparr.c \
+  check-spht.c
 
 check_PROGRAMS = cutgen cutcheck
 cutgen_SOURCES = cutgen.c util.c util.h
