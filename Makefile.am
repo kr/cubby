@@ -9,6 +9,7 @@ dist_doc_DATA = \
 
 cubbyd_SOURCES = \
   cubbyd.c \
+  bundle.c bundle.h \
   net.c net.h \
   prot.c prot.h \
   store.c store.h \
