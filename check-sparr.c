@@ -73,6 +73,20 @@ __CUT__empty_spgroup_deleting_first_should_nop()
 }
 
 void
+__CUT__empty_spgroup_setting_second_then_first()
+{
+    int r;
+
+    r = spgroup_set(g, 1, (dirent) 8);
+    r = spgroup_set(g, 0, (dirent) 7);
+
+    ASSERT(!r, "should claim success");
+    ASSERT(g->fill == 2, "g should contain one thing");
+    ASSERT(((int) spgroup_get(g, 1)) == 8, "g[1] should be 8");
+    ASSERT(spgroup_test(g, 1), "g[1] should be full");
+}
+
+void
 __CUT_TAKEDOWN__empty_spgroup()
 {
 }

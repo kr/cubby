@@ -6,12 +6,14 @@
 
 static spht h;
 
-static struct key k0s = { 0x6b86b273ff34fce1LLU, 0x9d6b804eff5a3f57LLU },
-                  k1s = { 0xd4735e3a265e16eeLLU, 0xe03f59718b9b5d03LLU };
+static uint32_t k0[3] = { 0x6b86b273LU, 0xff34fce1LU, 0x9d6b804eLU },
+                k1[3] = { 0xd4735e3aLU, 0x265e16eeLU, 0xe03f5971LU },
+                k2[3] = { 0x00000000LU, 0x00000002LU, 0x00000000LU },
+                k3[3] = { 0x00000000LU, 0x00000003LU, 0x00000000LU },
+                k4[3] = { 0x00000000LU, 0x00000004LU, 0x00000000LU },
+                k5[3] = { 0x00000000LU, 0x00000005LU, 0x00000000LU };
 
-static key k0 = &k0s, k1 = &k1s;
-
-static dirent dr0, dr1;
+static dirent dr0, dr1, dr2, dr3, dr4, dr5;
 
 void
 __CUT_BRINGUP__new_spht()
@@ -46,9 +48,17 @@ __CUT_BRINGUP__empty_spht()
 {
     h = make_spht(3);
     ASSERT(!!h, "Just trying to allocate here");
-    dr0 = make_dirent_remote(k0);
+    dr0 = make_dirent(k0, 0);
     ASSERT(!!dr0, "Just trying to allocate here");
-    dr1 = make_dirent_remote(k1);
+    dr1 = make_dirent(k1, 0);
+    ASSERT(!!dr1, "Just trying to allocate here");
+    dr2 = make_dirent(k2, 0);
+    ASSERT(!!dr1, "Just trying to allocate here");
+    dr3 = make_dirent(k3, 0);
+    ASSERT(!!dr1, "Just trying to allocate here");
+    dr4 = make_dirent(k4, 0);
+    ASSERT(!!dr1, "Just trying to allocate here");
+    dr5 = make_dirent(k5, 0);
     ASSERT(!!dr1, "Just trying to allocate here");
 }
 
@@ -105,9 +115,17 @@ __CUT_BRINGUP__full_spht()
     h = make_spht(3);
     ASSERT(!!h, "Just trying to allocate here");
 
-    dr0 = make_dirent_remote(k0);
+    dr0 = make_dirent(k0, 0);
     ASSERT(!!dr0, "Just trying to allocate here");
-    dr1 = make_dirent_remote(k1);
+    dr1 = make_dirent(k1, 0);
+    ASSERT(!!dr1, "Just trying to allocate here");
+    dr2 = make_dirent(k2, 0);
+    ASSERT(!!dr1, "Just trying to allocate here");
+    dr3 = make_dirent(k3, 0);
+    ASSERT(!!dr1, "Just trying to allocate here");
+    dr4 = make_dirent(k4, 0);
+    ASSERT(!!dr1, "Just trying to allocate here");
+    dr5 = make_dirent(k5, 0);
     ASSERT(!!dr1, "Just trying to allocate here");
 
     r = spht_set(h, k0, dr0);
@@ -120,6 +138,7 @@ void
 __CUT__full_spht_should_be_full()
 {
     ASSERT(spht_fill(h) == 2, "h should contain two things");
+    ASSERT(sparr_get(h->table, 3) == dr0, "h->table[3] should be dr0");
     ASSERT(spht_get(h, k0) == dr0, "h[k0] should be dr0");
     ASSERT(spht_get(h, k1) == dr1, "h[k1] should be dr1");
 }
@@ -151,6 +170,21 @@ __CUT__full_spht_setting_k0_to_0()
     ASSERT(!r, "should claim success");
     ASSERT(spht_fill(h) == 1, "h should contain one thing");
     ASSERT(!spht_get(h, k1), "h[k1] should be empty");
+}
+
+void
+__CUT__full_spht_grows()
+{
+    size_t old_cap;
+
+    ASSERT(spht_fill(h) == 2, "we start out with 2 items");
+    ASSERT(h->enlarge_threshold == 3, "should enlarge after 3 items");
+
+    old_cap = h->table->cap;
+    spht_set(h, k2, dr2);
+    ASSERT(old_cap == h->table->cap, "the table should not have grown yet");
+    spht_set(h, k3, dr3);
+    ASSERT(old_cap < h->table->cap, "the table should have grown");
 }
 
 void

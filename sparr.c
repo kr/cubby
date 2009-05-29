@@ -50,6 +50,7 @@ bmclear(uint8_t *bm, uint16_t i)
     return bm[charbit(i)] &= ~modbit(i);
 }
 
+/* count the bits up to, but not including, index i */
 static uint16_t
 bmcount(uint8_t *bm, uint16_t i)
 {
@@ -102,11 +103,8 @@ dirent
 spgroup_get(spgroup g, uint16_t i)
 {
     if (!bmtest(g->mask, i)) return 0;
-
     return g->slots[bmcount(g->mask, i)];
 }
-
-#include <stdio.h>
 
 int
 spgroup_rm(spgroup g, uint16_t i)
@@ -117,7 +115,7 @@ spgroup_rm(spgroup g, uint16_t i)
     if (!bmtest(g->mask, i)) return 0;
 
     nslots = malloc(sizeof(dirent) * (g->fill - 1));
-    if (!nslots) return warn("realloc"), -1;
+    if (!nslots) return warn("malloc"), -1;
 
     slot = bmcount(g->mask, i);
     memcpy(nslots, g->slots, sizeof(dirent) * slot);
@@ -137,20 +135,32 @@ spgroup_set(spgroup g, uint16_t i, dirent v)
 
     if (!v) return spgroup_rm(g, i);
 
+    slot = bmcount(g->mask, i);
+
     if (!bmtest(g->mask, i)) {
         dirent *nslots;
 
         nslots = realloc(g->slots, sizeof(dirent) * (g->fill + 1));
         if (!nslots) return warn("realloc"), -1;
 
+        memmove(nslots + slot + 1, nslots + slot,
+                sizeof(dirent) * (g->fill - slot));
+
         g->slots = nslots;
         g->fill++;
+        bmset(g->mask, i);
     }
 
-    slot = bmcount(g->mask, i);
     g->slots[slot] = v;
-    bmset(g->mask, i);
+
     return 0;
+}
+
+void
+spgroup_free(spgroup g)
+{
+    free(g->slots);
+    free(g);
 }
 
 /* Sparse Array */
@@ -197,9 +207,7 @@ sparr_get(sparr a, size_t i)
 {
     size_t gnum = group_num(i);
 
-    if (!a->groups[gnum]) a->groups[gnum] = make_spgroup();
-    if (!a->groups[gnum]) return warnx("make_spgroup"), (dirent) 0;
-
+    if (!a->groups[gnum]) return 0;
     return spgroup_get(a->groups[gnum], pos_in_group(i));
 }
 
@@ -219,6 +227,7 @@ sparr_set(sparr a, size_t i, dirent v)
     old_g_fill = g->fill;
     r = spgroup_set(g, pos_in_group(i), v);
     a->fill += g->fill - old_g_fill;
+
     return r;
 }
 
@@ -226,5 +235,17 @@ int
 sparr_rm(sparr a, size_t i)
 {
     return sparr_set(a, i, 0);
+}
+
+void
+sparr_free(sparr a)
+{
+    int i, ngroups = a->cap / GROUP_SIZE;
+
+    for (i = 0; i < ngroups; i++) {
+        spgroup_free(a->groups[i]);
+    }
+
+    free(a);
 }
 

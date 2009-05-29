@@ -15,14 +15,15 @@
 
 typedef struct spht {
     size_t ndel;
+    size_t enlarge_threshold;
     sparr table;
 } *spht;
 
 
 spht make_spht(size_t cap);
-dirent spht_get(spht h, key k);
-int spht_set(spht h, key k, dirent v);
-void spht_rm(spht h, key k);
+dirent spht_get(spht h, uint32_t *k);
+int spht_set(spht h, uint32_t *k, dirent v);
+void spht_rm(spht h, uint32_t *k);
 
 size_t spht_fill(spht h);
 

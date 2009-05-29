@@ -4,12 +4,10 @@
 #include "dirent.h"
 #include "cut.h"
 
-static struct key k0s = { 0x6b86b273ff34fce1LLU, 0x9d6b804eff5a3f57LLU },
-                  k1s = { 0xd4735e3a265e16eeLLU, 0xe03f59718b9b5d03LLU };
+static uint32_t k0[3] = { 0x6b86b273LU, 0xff34fce1LU, 0x9d6b804eLU },
+                k1[3] = { 0xd4735e3aLU, 0x265e16eeLU, 0xe03f5971LU };
 
-static key k0 = &k0s, k1 = &k1s;
-
-static dirent ds, dr;
+static dirent d0;
 
 void
 __CUT_BRINGUP__null_dirent()
@@ -30,48 +28,23 @@ __CUT_TAKEDOWN__null_dirent()
 void
 __CUT_BRINGUP__stored_dirent()
 {
-    ds = make_dirent_stored(k0);
-    ASSERT(!!ds, "Just trying to allocate here");
+    d0 = make_dirent(k0, 0);
+    ASSERT(!!d0, "Just trying to allocate here");
 }
 
 void
 __CUT__stored_dirent_matches()
 {
-    ASSERT(dirent_matches(ds, k0), "ds should match key k0");
+    ASSERT(dirent_matches(d0, k0), "d0 should match key k0");
 }
 
 void
 __CUT__stored_dirent_doesnt_match()
 {
-    ASSERT(!dirent_matches(ds, k1), "ds should not match key k1");
+    ASSERT(!dirent_matches(d0, k1), "d0 should not match key k1");
 }
 
 void
 __CUT_TAKEDOWN__stored_dirent()
 {
 }
-
-void
-__CUT_BRINGUP__remote_dirent()
-{
-    dr = make_dirent_remote(k0);
-    ASSERT(!!dr, "Just trying to allocate here");
-}
-
-void
-__CUT__remote_dirent_matches()
-{
-    ASSERT(dirent_matches(dr, k0), "ds should match key k0");
-}
-
-void
-__CUT__remote_dirent_doesnt_match()
-{
-    ASSERT(!dirent_matches(dr, k1), "ds should not match key k1");
-}
-
-void
-__CUT_TAKEDOWN__remote_dirent()
-{
-}
-
