@@ -12,7 +12,6 @@ cubbyd_SOURCES = \
   bundle.c bundle.h \
   net.c net.h \
   prot.c prot.h \
-  store.c store.h \
   $(shared_sources)
 
 shared_sources = \

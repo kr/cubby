@@ -11,9 +11,11 @@
 typedef struct bundle {
     char *name;
     uint16_t nregions;
+    size_t size;
     void *base;
 } *bundle;
 
 int add_bundle(char *name);
+int bundles_init();
 
 #endif //bundle_h

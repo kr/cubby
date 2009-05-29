@@ -9,14 +9,17 @@
 
 #include "net.h"
 #include "prot.h"
-#include "store.h"
 #include "bundle.h"
 #include "util.h"
 
 static void
 usage(char *msg, char *arg)
 {
-    if (arg) raw_warnx("%s: %s", msg, arg);
+    if (arg) {
+        raw_warnx("%s: %s", msg, arg);
+    } else if (msg) {
+        raw_warnx("%s", msg);
+    }
     fprintf(stderr, "Use: %s [OPTIONS]\n"
             "\n"
             "Options:\n"
@@ -53,10 +56,13 @@ opts(char **argv)
 int
 main(int argc, char **argv)
 {
+    int r;
+
     progname = *argv;
     opts(argv + 1);
 
-    store_init(); // Read and index the files
+    r = bundles_init(); // Read and index the files
+    if (r == -1) usage("Try the -b option", 0);
 
     prot_init();
     net_init();
