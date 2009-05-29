@@ -151,17 +151,17 @@ spht_get(spht h, uint32_t *k)
 }
 
 int
-spht_set(spht h, uint32_t *k, dirent v)
+spht_set(spht h, dirent v)
 {
     int r;
     struct position pos;
 
-    if (!v || v == invalid_dirent) return spht_rm(h, k), 0;
+    if (!v || v == invalid_dirent) return -1;
 
     r = ensure_cap(h, 1);
     if (r == -1) return warnx("ensure_cap"), -1;
 
-    find_position(h->table, &pos, k);
+    find_position(h->table, &pos, v->key);
 
     // Already there.
     if (pos.exists != INVALID_BUCKET) return 0;

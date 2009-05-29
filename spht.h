@@ -22,7 +22,7 @@ typedef struct spht {
 
 spht make_spht(size_t cap);
 dirent spht_get(spht h, uint32_t *k);
-int spht_set(spht h, uint32_t *k, dirent v);
+int spht_set(spht h, dirent v);
 void spht_rm(spht h, uint32_t *k);
 
 size_t spht_fill(spht h);

@@ -75,7 +75,7 @@ __CUT__empty_spht_setting_k0_should_work()
 {
     int r;
 
-    r = spht_set(h, k0, dr0);
+    r = spht_set(h, dr0);
 
     ASSERT(!r, "should claim success");
     ASSERT(spht_fill(h) == 1, "h should contain one thing");
@@ -87,7 +87,7 @@ __CUT__empty_spht_setting_k0_should_leave_others()
 {
     int r;
 
-    r = spht_set(h, k0, dr0);
+    r = spht_set(h, dr0);
 
     ASSERT(!r, "should claim success");
     ASSERT(!spht_get(h, k1), "h[k1] should be empty");
@@ -128,9 +128,9 @@ __CUT_BRINGUP__full_spht()
     dr5 = make_dirent(k5, 0);
     ASSERT(!!dr1, "Just trying to allocate here");
 
-    r = spht_set(h, k0, dr0);
+    r = spht_set(h, dr0);
     ASSERT(!r, "Just trying to allocate here");
-    r = spht_set(h, k1, dr1);
+    r = spht_set(h, dr1);
     ASSERT(!r, "Just trying to allocate here");
 }
 
@@ -161,15 +161,13 @@ __CUT__full_spht_deleting_k0_should_leave_others()
 }
 
 void
-__CUT__full_spht_setting_k0_to_0()
+__CUT__full_spht_setting_null()
 {
     int r;
 
-    r = spht_set(h, k1, (dirent) 0);
+    r = spht_set(h, (dirent) 0);
 
-    ASSERT(!r, "should claim success");
-    ASSERT(spht_fill(h) == 1, "h should contain one thing");
-    ASSERT(!spht_get(h, k1), "h[k1] should be empty");
+    ASSERT(r == -1, "should claim failure");
 }
 
 void
@@ -181,9 +179,9 @@ __CUT__full_spht_grows()
     ASSERT(h->enlarge_threshold == 3, "should enlarge after 3 items");
 
     old_cap = h->table->cap;
-    spht_set(h, k2, dr2);
+    spht_set(h, dr2);
     ASSERT(old_cap == h->table->cap, "the table should not have grown yet");
-    spht_set(h, k3, dr3);
+    spht_set(h, dr3);
     ASSERT(old_cap < h->table->cap, "the table should have grown");
 }
 
