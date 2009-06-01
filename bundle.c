@@ -72,25 +72,20 @@ bundle_init(bundle b)
 {
     uint16_t i;
 
-    raw_warnx("initializing bundle %s", b->name);
-
     memset(b->storage, 0, b->tot_size);
 
-    raw_warnx("setting up %d regions", b->nregions);
     for (i = 0; i < b->nregions; i++) {
         region_storage rs = bundle_get_region_storage(b, i);
 
         // write region header
         rs->flags = 0;
     }
-    raw_warnx("setting up %d regions", b->nregions);
 
     // write bundle header
     b->storage->magic = BUNDLE_MAGIC;
     b->storage->version = BUNDLE_VERSION;
 
     bundle_sync(b, 1);
-    raw_warnx("synced bundle %s", b->name);
 
     return 0;
 }

@@ -87,9 +87,7 @@ opts(char **argv)
                 memcache_port = parse_port(require_arg("-m", *argv++));
                 break;
             case 'p':
-                warnx("setting HTTP port");
                 http_port = parse_port(require_arg("-p", *argv++));
-                warnx("set HTTP port to %d", http_port);
                 break;
             case 'h':
                 usage(0, 0);
