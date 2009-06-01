@@ -152,7 +152,7 @@ bundle_open(bundle b)
 }
 
 int
-bundles_init()
+bundles_init(spht directory)
 {
     int i, r;
     size_t nregions = 0;
@@ -171,7 +171,7 @@ bundles_init()
 
     if (nregions < 1) return warnx("no valid regions"), -2;
 
-    r = regions_init(nregions);
+    r = regions_init(nregions, directory);
     if (r == -1) return warnx("regions_init"), -2;
 
     return 0;

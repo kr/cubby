@@ -8,6 +8,8 @@
 # include <stdint.h>
 #endif /* else we get int types from config.h */
 
+#include "spht.h"
+
 #define REGION_BITS 19
 //#define REGION_BITS 32
 
@@ -25,9 +27,10 @@ typedef struct region_storage {
 /* In-memory descriptor for a region */
 typedef struct region {
     uint64_t size;
+    uint16_t id;
     region_storage storage;
 } *region;
 
-int regions_init(uint16_t count);
+int regions_init(uint16_t count, spht directory);
 
 #endif //region_h

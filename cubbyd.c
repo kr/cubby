@@ -65,11 +65,14 @@ int
 main(int argc, char **argv)
 {
     int r;
+    spht dir;
 
     progname = *argv;
     opts(argv + 1);
 
-    r = bundles_init(); // Read and index the files
+    dir = make_spht(0);
+
+    r = bundles_init(dir); // Read and index the files
     if (r == -1) usage("Try the -b option", 0);
     if (r == -2) return warnx("cannot continue"), 2;
 

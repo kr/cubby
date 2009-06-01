@@ -9,6 +9,7 @@
 #endif /* else we get int types from config.h */
 
 #include "region.h"
+#include "spht.h"
 
 #define BUNDLE_VERSION 1
 
@@ -36,7 +37,7 @@ extern int initialize_bundles;
 
 int add_bundle(char *name);
 void bundle_sync(bundle b, int sync);
-int bundles_init();
+int bundles_init(spht directory);
 uint16_t bundles_count();
 bundle bundle_get(uint16_t i);
 region_storage bundle_get_region_storage(bundle b, uint16_t i);

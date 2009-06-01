@@ -5,13 +5,15 @@
 #include "blob.h"
 #include "region.h"
 #include "bundle.h"
+#include "dirent.h"
+#include "spht.h"
 #include "util.h"
 
 static struct region *all_regions = 0;
 static int nregions = 0;
 
 int
-regions_init(uint16_t count)
+regions_init(uint16_t count, spht directory)
 {
     int nbundles, i, j, n = 0;
 
@@ -25,6 +27,7 @@ regions_init(uint16_t count)
         for (j = 0; j < bun->nregions; j++) {
             blob bl;
             region reg = &all_regions[n++];
+            reg->id = n - 1;
             reg->size = 1 << REGION_BITS;
             if (j == bun->nregions - 1) { // last region
                 reg->size = bun->reg_size % reg->size; // might be shorter
@@ -35,6 +38,8 @@ regions_init(uint16_t count)
 
             for (bl = (blob) reg->storage->blobs; bl < rtop; bl = blob_next(bl)) {
                 int r;
+                dirent de;
+                rdesc_local rdesc;
 
                 if (!bl->size) break;
                 raw_warnx("blob size is %d", bl->size);
@@ -45,7 +50,13 @@ regions_init(uint16_t count)
                           ((char *) bl) - ((char *) reg->storage));
                     continue;
                 }
-                // insert into the directory
+
+                de = make_dirent(bl->key, 1);
+                rdesc = (rdesc_local) &de->rdescs[0];
+                rdesc->flags = RDESC_LOCAL;
+                rdesc->reg = reg->id;
+                rdesc->off = ((char *) bl) - ((char *) reg->storage->blobs);
+                spht_set(directory, de);
             }
         }
     }

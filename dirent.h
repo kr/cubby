@@ -8,9 +8,20 @@
 # include <stdint.h>
 #endif /* else we get int types from config.h */
 
+#define RDESC_LOCAL 1
+
 // placeholder
 typedef struct rdesc {
+    char flags;
+    char pad[7];
 } *rdesc;
+
+typedef struct rdesc_local {
+    char flags;
+    char pad;
+    uint16_t reg;
+    uint32_t off;
+} *rdesc_local;
 
 typedef struct dirent {
     uint32_t key[3];
