@@ -6,11 +6,20 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
+#include <event.h>
 
 #include "net.h"
 #include "prot.h"
 #include "bundle.h"
 #include "util.h"
+
+#define DEFAULT_MEMCACHE_PORT 11211
+#define DEFAULT_HTTP_PORT 80
+
+static struct in_addr host_addr = {};
+static int memcache_port = DEFAULT_MEMCACHE_PORT,
+           http_port = DEFAULT_HTTP_PORT;
 
 static void
 usage(char *msg, char *arg)
@@ -24,12 +33,36 @@ usage(char *msg, char *arg)
             "\n"
             "Options:\n"
             " -b FILE  use this bundle file (may be given more than once)\n"
+            " -m PORT  memcache, listen on port PORT (default %d)\n"
+            " -p PORT  HTTP, listen on port PORT (default %d)\n"
             " -i       initialize bundles (negates -I)\n"
             " -I       don't initalize bundles (default; negates -i)\n"
             " -v       show version information\n"
             " -h       show this help\n",
-            progname);
+            progname, DEFAULT_MEMCACHE_PORT, DEFAULT_HTTP_PORT);
     exit(arg ? 5 : 0);
+}
+
+static char *
+require_arg(char *opt, char *arg)
+{
+    if (!arg) usage("option requires an argument", opt);
+    return arg;
+}
+
+static int
+parse_port(char *portstr)
+{
+    int port;
+    char *end;
+
+    errno = 0;
+    port = strtol(portstr, &end, 10);
+    if (end == portstr) usage("invalid port", portstr);
+    if (end[0] != 0) usage("invalid port", portstr);
+    if (errno) usage("invalid port", portstr);
+
+    return port;
 }
 
 static void
@@ -50,6 +83,14 @@ opts(char **argv)
             case 'I':
                 initialize_bundles = 0;
                 break;
+            case 'm':
+                memcache_port = parse_port(require_arg("-m", *argv++));
+                break;
+            case 'p':
+                warnx("setting HTTP port");
+                http_port = parse_port(require_arg("-p", *argv++));
+                warnx("set HTTP port to %d", http_port);
+                break;
             case 'h':
                 usage(0, 0);
             case 'v':
@@ -66,7 +107,9 @@ main(int argc, char **argv)
 {
     int r;
     spht dir;
+    struct event_base *ev_base;
 
+    host_addr.s_addr = INADDR_ANY;
     progname = *argv;
     opts(argv + 1);
 
@@ -77,9 +120,12 @@ main(int argc, char **argv)
     if (r == -2) return warnx("cannot continue"), 2;
 
     prot_init();
-    net_init();
+    ev_base = event_init();
+    net_init(host_addr, memcache_port, http_port);
 
     prot_bootstrap();
-    net_loop();
-    return 1;
+    r = net_loop();
+    if (r == -1) return warnx("error in main driver loop"), 19;
+
+    return 0;
 }

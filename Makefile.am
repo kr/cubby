@@ -11,6 +11,7 @@ cubbyd_SOURCES = \
   cubbyd.c \
   blob.c blob.h \
   bundle.c bundle.h \
+  http.c http.h \
   net.c net.h \
   prot.c prot.h \
   region.c region.h \

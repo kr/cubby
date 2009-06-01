@@ -3,88 +3,92 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
+#include <netinet/tcp.h>
 #include <poll.h>
 #include <sys/ioctl.h>
 #include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <event.h>
+#include <evhttp.h>
 
+#include "http.h"
 #include "util.h"
 
-static int udp_socket;
-
-static int
-dispatch()
-{
-    return 0;
-}
-
-static int
-net_read(short events) {
-    int r, size;
-
-    if (events & POLLIN) {
-        r = ioctl(udp_socket, FIONREAD, &size);
-        if (r == -1) return warn("ioctl"), -1;
-
-        if (size == 0) return warnx("no pending datagram"), -1; // can't happen
-
-        {
-            char buf[size];
-            struct sockaddr src_addr;
-            socklen_t addrlen = sizeof(src_addr);
-            ssize_t s;
-
-            s = recvfrom(udp_socket, buf, size, MSG_DONTWAIT, &src_addr,
-                    &addrlen);
-            if (s == -1) return warn("recvfrom"), -1;
-            if (s > 0) return dispatch(size, &buf, &src_addr, &addrlen);
-            return warnx("got EOF on udp socket"), -1; // can't happen
-        }
-    }
-
-    return 0;
-}
-
-static int
-once() {
-    int r;
-    struct pollfd pfd;
-
-    pfd.fd = udp_socket;
-    pfd.events = POLLIN | POLLOUT;
-
-    r = poll(&pfd, 1, -1);
-    if (r > 0) return net_read(pfd.revents);
-    if (r < 0) return warn("poll"), -1;
-
-    // r == 0 means timeout
-    warnx("can't happen"), exit(2);
-}
+static int memcache_socket = -1;
 
 int
 net_loop()
 {
     int r;
 
-    for (;;) {
-        r = once();
-        if (r == -1) return warnx("once"), -1;
-    }
+    r = event_dispatch();
+    // what is the meaning of this return value???
+    // does event_dispatch set errno???
+    return warnx("event_dispatch error %d", r), -1;
 }
 
-void
-net_init()
+int
+make_listen_socket(struct in_addr host_addr, int port)
 {
-    int r;
+    int fd, flags, r;
+    struct linger linger = {0, 0};
     struct sockaddr_in saddr = {};
-    uint16_t port = 10101;
 
-    udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
-    if (udp_socket == -1) warn("socket"), exit(2);
+    fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (fd == -1) return warn("socket"), -1;
+
+    // get existing flags
+    flags = fcntl(fd, F_GETFL, 0);
+    if (flags < 0) return warn("getting flags"), close(fd), -1;
+
+    // set the all-important O_NONBLOCK
+    r = fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+    if (r == -1) return warn("setting O_NONBLOCK"), close(fd), -1;
+
+    flags = 1;
+    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &flags, sizeof flags);
+    setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &flags, sizeof flags);
+    setsockopt(fd, SOL_SOCKET, SO_LINGER,   &linger, sizeof linger);
+    setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &flags, sizeof flags);
 
     saddr.sin_family = AF_INET;
     saddr.sin_port = htons(port);
-    saddr.sin_addr.s_addr = INADDR_ANY;
+    saddr.sin_addr = host_addr;
+    r = bind(fd, (const struct sockaddr *) &saddr, sizeof(saddr));
+    if (r == -1) return warn("bind"), close(fd), -1;
 
-    r = bind(udp_socket, (const struct sockaddr *) &saddr, sizeof(saddr));
-    if (r == -1) warn("bind"), exit(2);
+    r = listen(fd, 1024); // 1024 == size of backlog of pending connections
+    if (r == -1) return warn("listen"), close(fd), -1;
+
+    return fd;
+}
+
+void
+net_init(struct in_addr host_addr, int memcache_port, int http_port)
+{
+    int r;
+    struct evhttp *ev_http;
+
+    if (memcache_port) {
+        memcache_socket = make_listen_socket(host_addr, memcache_port);
+        if (memcache_socket == -1) {
+            warnx("could not open memcache port %d", memcache_port);
+            exit(2);
+        }
+    }
+
+    if (http_port) {
+        ev_http = evhttp_new(0);
+        r = evhttp_bind_socket(ev_http, "0.0.0.0", http_port);
+        // This return value is undocumented (!), but this seems to work.
+        if (r == -1) {
+            warn("evhttp_bind_socket");
+            warnx("could not open port %d", http_port);
+            exit(3);
+        }
+
+        evhttp_set_gencb(ev_http, http_handle_generic, 0);
+    }
+
 }
