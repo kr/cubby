@@ -9,9 +9,11 @@ dist_doc_DATA = \
 
 cubbyd_SOURCES = \
   cubbyd.c \
+  blob.c blob.h \
   bundle.c bundle.h \
   net.c net.h \
   prot.c prot.h \
+  region.c region.h \
   $(shared_sources)
 
 shared_sources = \

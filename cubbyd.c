@@ -24,6 +24,8 @@ usage(char *msg, char *arg)
             "\n"
             "Options:\n"
             " -b FILE  use this bundle file (may be given more than once)\n"
+            " -i       initialize bundles (negates -I)\n"
+            " -I       don't initalize bundles (default; negates -i)\n"
             " -v       show version information\n"
             " -h       show this help\n",
             progname);
@@ -41,6 +43,12 @@ opts(char **argv)
         switch (opt[1]) {
             case 'b':
                 add_bundle(*argv++);
+                break;
+            case 'i':
+                initialize_bundles = 1;
+                break;
+            case 'I':
+                initialize_bundles = 0;
                 break;
             case 'h':
                 usage(0, 0);
@@ -63,6 +71,7 @@ main(int argc, char **argv)
 
     r = bundles_init(); // Read and index the files
     if (r == -1) usage("Try the -b option", 0);
+    if (r == -2) return warnx("cannot continue"), 2;
 
     prot_init();
     net_init();

@@ -19,6 +19,14 @@
 #ifndef util_h
 #define util_h
 
+#include "stdlib.h"
+
+#define CEIL_DIV(num, denexp) (1 + ((num - 1) >> denexp))
+
+#define ROUND_UP_TO_POWER_OF_TWO(x, k) (CEIL_DIV(x, k) << k)
+
+#define ALIGN(a,t) ((t) ROUND_UP_TO_POWER_OF_TWO(((size_t) a), 3))
+
 #define min(a,b) ((a)<(b)?(a):(b))
 
 void raw_warn(const char *fmt, ...);
