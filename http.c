@@ -1,6 +1,6 @@
 // http.c -- http handlers
 
-#include <evhttp.h>
+#include <event2/http.h>
 
 #include "http.h"
 #include "util.h"

@@ -9,8 +9,8 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <event.h>
-#include <evhttp.h>
+#include <event2/event.h>
+#include <event2/http.h>
 
 #include "http.h"
 #include "util.h"
@@ -18,14 +18,14 @@
 static int memcache_socket = -1;
 
 int
-net_loop()
+net_loop(struct event_base *ev_base)
 {
     int r;
 
-    r = event_dispatch();
+    r = event_base_dispatch(ev_base);
     // what is the meaning of this return value???
-    // does event_dispatch set errno???
-    return warnx("event_dispatch error %d", r), -1;
+    // does event_base_dispatch set errno???
+    return warnx("event_base_dispatch error %d", r), -1;
 }
 
 int
@@ -65,7 +65,8 @@ make_listen_socket(struct in_addr host_addr, int port)
 }
 
 void
-net_init(struct in_addr host_addr, int memcache_port, int http_port)
+net_init(struct event_base *ev_base, struct in_addr host_addr,
+         int memcache_port, int http_port)
 {
     int r;
     struct evhttp *ev_http;
@@ -79,7 +80,7 @@ net_init(struct in_addr host_addr, int memcache_port, int http_port)
     }
 
     if (http_port) {
-        ev_http = evhttp_new(0);
+        ev_http = evhttp_new(ev_base);
         r = evhttp_bind_socket(ev_http, "0.0.0.0", http_port);
         // This return value is undocumented (!), but this seems to work.
         if (r == -1) {

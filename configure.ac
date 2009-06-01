@@ -24,9 +24,9 @@ AC_ARG_WITH(event,
 
 test "x$with_event" = xno && AC_MSG_ERROR([Cubby requires libevent.])
 
-AS_HUNT_AROUND([event], [event_reinit],
+AS_HUNT_AROUND([event], [event_assign], [event2/event.h],
   [],
-  [AC_MSG_ERROR([Cubby requires libevent 1.4.1 or later.])])
+  [AC_MSG_ERROR([Cubby requires libevent 2.0 or later.])])
 
 # Checks for header files.
 #AC_CHECK_HEADERS([])

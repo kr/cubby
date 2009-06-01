@@ -15,7 +15,7 @@ AC_DEFUN([AS_HUNT_AROUND],
     # TODO make this configurable
     for f in "/usr /usr/local /opt /local"
     do
-      if test -f "$f/include/$1.h"
+      if test -f "$f/include/$3"
       then
         with_$1="$f"
         break
@@ -35,5 +35,5 @@ AC_DEFUN([AS_HUNT_AROUND],
     CFLAGS="$CFLAGS -I$with_$1/include"
   fi
 
-  AC_CHECK_LIB([$1], [$2], [$3], [$4])
+  AC_CHECK_LIB([$1], [$2], [$4], [$5])
 ])

@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
-#include <event.h>
+#include <event2/event.h>
 
 #include "net.h"
 #include "prot.h"
@@ -120,11 +120,12 @@ main(int argc, char **argv)
     if (r == -2) return warnx("cannot continue"), 2;
 
     prot_init();
-    ev_base = event_init();
-    net_init(host_addr, memcache_port, http_port);
+    ev_base = event_base_new();
+    if (!ev_base) return warn("event_base_new"), 2;
+    net_init(ev_base, host_addr, memcache_port, http_port);
 
     prot_bootstrap();
-    r = net_loop();
+    r = net_loop(ev_base);
     if (r == -1) return warnx("error in main driver loop"), 19;
 
     return 0;
