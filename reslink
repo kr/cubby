@@ -1,0 +1,17 @@
+#!/bin/sh
+
+inp="$1"
+out="$2"
+name=`basename "$inp" | tr -d [:space:] | tr -C [:alnum:] _`
+
+cat >"$out" <<EOF
+  .global ${name}
+  .global ${name}_end
+  .global ${name}_size
+  .data
+${name}:
+  .incbin "$inp"
+${name}_end:
+${name}_size:
+  .int (${name}_end - $name)
+EOF

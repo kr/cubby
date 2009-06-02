@@ -15,7 +15,10 @@ cubbyd_SOURCES = \
   net.c net.h \
   prot.c prot.h \
   region.c region.h \
+  $(templates) \
   $(shared_sources)
+
+templates = root.html
 
 shared_sources = \
   dirent.c dirent.h \
@@ -28,10 +31,14 @@ unit_tests = \
   check-sparr.c \
   check-spht.c
 
+EXTRA_DIST = reslink
+
 check_PROGRAMS = cutgen cutcheck
 cutgen_SOURCES = cutgen.c util.c util.h
 cutcheck_SOURCES = cutcheck.c cut.c cut.h $(unit_tests) $(shared_sources)
-CLEANFILES = cutcheck.c
+CLEANFILES = cutcheck.c $(templates:.html=.o)
+
+cubbyd_LDADD = $(templates:.html=.o)
 
 check: cutcheck
 	$(builddir)/$<
@@ -41,5 +48,11 @@ cutcheck.c: cutgen $(unit_tests)
 
 $(srcdir)/version.m4:
 	printf `git describe` | sed 's/^v//' > $@
+
+%.o: %.s
+	$(AS) -o $@ $^
+
+%.s: %.html
+	$(srcdir)/reslink $^ $@
 
 ACLOCAL_AMFLAGS = -I m4
