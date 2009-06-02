@@ -11,6 +11,6 @@ void net_init(struct event_base *ev_base, struct in_addr host_addr,
               int memcache_port, int http_port);
 
 /* The main dispatch loop. */
-int net_loop();
+int net_loop(struct event_base *ev_base);
 
 #endif //net_h
