@@ -90,6 +90,7 @@ net_init(struct event_base *ev_base, struct in_addr host_addr,
         }
 
         evhttp_set_gencb(ev_http, http_handle_generic, 0);
+        evhttp_set_cb(ev_http, "/", http_handle_root, 0);
     }
 
 }
