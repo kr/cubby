@@ -5,7 +5,9 @@
 
 #include <event2/http.h>
 
-void http_handle_generic(struct evhttp_request *req, void *data);
-void http_handle_root(struct evhttp_request *req, void *data);
+#include "spht.h"
+
+void http_handle_generic(struct evhttp_request *req, void *dir);
+void http_handle_root(struct evhttp_request *req, void *dir);
 
 #endif //http_h

@@ -120,7 +120,7 @@ main(int argc, char **argv)
     prot_init();
     ev_base = event_base_new();
     if (!ev_base) return warn("event_base_new"), 2;
-    net_init(ev_base, host_addr, memcache_port, http_port);
+    net_init(ev_base, host_addr, memcache_port, http_port, dir);
 
     prot_bootstrap();
     r = net_loop(ev_base);
