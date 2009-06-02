@@ -54,3 +54,13 @@ raw_warnx(const char *fmt, ...)
     raw_vwarnx(NULL, fmt, args);
     va_end(args);
 }
+
+int
+startswith(const char *haystack, const char *needle)
+{
+    if (!haystack || !needle) return 0;
+    for (;; haystack++, needle++) {
+        if (!*needle) return 1;
+        if (*haystack != *needle) return 0;
+    }
+}

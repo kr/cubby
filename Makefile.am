@@ -29,7 +29,8 @@ shared_sources = \
 unit_tests = \
   check-dirent.c \
   check-sparr.c \
-  check-spht.c
+  check-spht.c \
+  check-util.c
 
 EXTRA_DIST = reslink
 

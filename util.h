@@ -29,6 +29,8 @@
 
 #define min(a,b) ((a)<(b)?(a):(b))
 
+int startswith(const char *haystack, const char *needle);
+
 void raw_warn(const char *fmt, ...);
 void raw_warnx(const char *fmt, ...);
 
