@@ -16,6 +16,13 @@ To add more storage, you just turn on a new box and fire up cubbyd. No
 configuration is necessary. If a node fails, Cubby will re-replicate files to
 maintain your desired level of reduncancy.
 
+# Reliable
+
+Unlike similar systems, Cubby doesn't have a centralized "manager" or
+"metadata server" to fail. File data and metadata are distributed evenly and
+redundantly among all Cubby nodes. If one node fails, directory lookups and
+file retrieval continue to work with the remaining nodes.
+
 # Scalable
 
 Cubby is designed to scale to hundreds of nodes and petabytes of storage.
