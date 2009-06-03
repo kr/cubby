@@ -6,11 +6,11 @@
 #include <netinet/in.h>
 #include <event2/event.h>
 
-#include "spht.h"
+#include "manager.h"
 
 /* Initialize the network. */
 void net_init(struct event_base *ev_base, struct in_addr host_addr,
-              int memcache_port, int http_port, spht dir);
+              int memcache_port, int http_port, manager dir);
 
 /* The main dispatch loop. */
 int net_loop(struct event_base *ev_base);

@@ -9,34 +9,95 @@
 #include "spht.h"
 #include "util.h"
 
-static struct region *all_regions = 0;
-static int nregions = 0;
+size_t
+region_blob_offset(region r, blob b)
+{
+    return ((char *) b) - r->storage->blobs;
+}
+
+blob
+region_get_blob_by_off(region r, uint32_t off)
+{
+    return (blob) (r->storage->blobs + off);
+}
+
+blob
+region_allocate_blob(region r, size_t size)
+{
+    blob new;
+    char *next_free;
+
+    new = (blob) r->free;
+
+    // Find the end of this blob's space.
+    next_free = ALIGN(new->data + size, char *);
+    if (next_free >= r->top) return 0;
+
+    r->free = next_free; // Actually allocate the space.
+
+    return new;
+}
+
+static void
+region_delete_blob(region r, blob b)
+{
+    warnx("STUB");
+    exit(66);
+}
+
+void
+region_unallocate_blob(region r, blob b)
+{
+    blob next;
+
+    next = blob_next(b);
+
+    /* If the free pointer is just after this blob, that means this one was
+       most recently allocated. */
+    if (((char *) next) == r->free) {
+        /* Just reset the free ptr. blob should now be considered invalid. */
+        r->free = (char *) b;
+    } else {
+        /* Tsk tsk. The caller is trying to return a blob in the middle
+           somewhere. So we'll just fall back to the full-on delete. */
+        region_delete_blob(r, b);
+    }
+}
+
+static int
+region_close_to_full(region r)
+{
+    return 0;
+}
 
 int
-regions_init(uint16_t count, spht directory)
+regions_init(manager mgr, uint16_t count)
 {
     int nbundles, i, j, n = 0;
 
-    all_regions = malloc(sizeof(struct region) * count);
-    if (!all_regions) return warn("malloc"), -1;
-    nregions = count;
+    mgr->all_regions = malloc(sizeof(struct region) * count);
+    if (!mgr->all_regions) return warn("malloc"), -1;
+    mgr->nregions = count;
 
     nbundles = bundles_count();
     for (i = 0; i < nbundles; i++) {
-        bundle bun = bundle_get(i);
+        bundle bun = bundle_get(mgr, i);
         for (j = 0; j < bun->nregions; j++) {
             blob bl;
-            region reg = &all_regions[n++];
+            size_t reg_total_size;
+            region reg = &mgr->all_regions[n++];
             reg->id = n - 1;
-            reg->size = 1 << REGION_BITS;
+
+            // Capacity of the region, not including the headers
+            reg_total_size = 1 << REGION_BITS;
+
             if (j == bun->nregions - 1) { // last region
-                reg->size = bun->reg_size % reg->size; // might be shorter
+                reg_total_size = bun->reg_size % reg_total_size; // might be shorter
             }
             reg->storage = bundle_get_region_storage(bun, j);
+            reg->top = ((char *) reg->storage) + reg_total_size;
 
-            blob rtop = (blob) (((char *) reg->storage) + reg->size);
-
-            for (bl = (blob) reg->storage->blobs; bl < rtop; bl = blob_next(bl)) {
+            for (bl = (blob) reg->storage->blobs; ; bl = blob_next(bl)) {
                 int r;
                 dirent de;
                 rdesc_local rdesc;
@@ -44,10 +105,16 @@ regions_init(uint16_t count, spht directory)
                 if (!bl->size) break;
                 raw_warnx("blob size is %d", bl->size);
 
+                /* This blob claims to extend past the end of the region! */
+                if (((char *) bl) >= reg->top) {
+                    warnx("%s: last blob overextended", bun->name);
+                    break;
+                }
+
                 r = blob_verify(bl);
                 if (r == -1) {
                     warnx("verification failed for blob at offset 0x%x\n",
-                          ((char *) bl) - ((char *) reg->storage));
+                          region_blob_offset(reg, bl));
                     continue;
                 }
 
@@ -55,8 +122,13 @@ regions_init(uint16_t count, spht directory)
                 rdesc = (rdesc_local) &de->rdescs[0];
                 rdesc->flags = RDESC_LOCAL;
                 rdesc->reg = reg->id;
-                rdesc->off = ((char *) bl) - ((char *) reg->storage->blobs);
-                spht_set(directory, de);
+                rdesc->off = region_blob_offset(reg, bl);
+                spht_set(mgr->directory, de);
+                raw_warnx("read one k = %8x.%8x.%8x", bl->key[2], bl->key[1], bl->key[0]);
+            }
+            reg->free = (char *) bl;
+            if (!region_close_to_full(reg)) {
+                manager_add_free_region(mgr, reg);
             }
         }
     }

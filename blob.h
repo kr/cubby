@@ -1,5 +1,8 @@
 // blob.h -- An individual blob on disk (header)
 
+#ifndef blob_h
+#define blob_h
+
 #include "config.h"
 #if HAVE_STDINT_H
 # include <stdint.h>
@@ -15,3 +18,5 @@ typedef struct blob {
 
 blob blob_next(blob bl);
 int blob_verify(blob bl);
+
+#endif //blob_h

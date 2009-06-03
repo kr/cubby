@@ -8,6 +8,11 @@
 # include <stdint.h>
 #endif /* else we get int types from config.h */
 
+typedef struct dirent *dirent;
+
+#include "blob.h"
+#include "region.h"
+
 #define RDESC_LOCAL 1
 
 // placeholder
@@ -23,17 +28,19 @@ typedef struct rdesc_local {
     uint32_t off;
 } *rdesc_local;
 
-typedef struct dirent {
+struct dirent {
     uint32_t key[3];
     char pad0[3];
     uint8_t len;
     struct rdesc rdescs[];
-} *dirent;
+};
 
 extern dirent invalid_dirent;
 
 dirent make_dirent(uint32_t *key, uint8_t len);
 
 int dirent_matches(dirent d, uint32_t *key);
+
+void dirent_set_rdesc_local(dirent d, int i, region r, blob b);
 
 #endif //dirent_h

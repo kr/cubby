@@ -12,6 +12,7 @@
 #include "net.h"
 #include "prot.h"
 #include "bundle.h"
+#include "manager.h"
 #include "util.h"
 
 #define DEFAULT_MEMCACHE_PORT 11211
@@ -66,7 +67,7 @@ parse_port(char *portstr)
 }
 
 static void
-opts(char **argv)
+opts(manager mgr, char **argv)
 {
     char *opt;
 
@@ -75,7 +76,7 @@ opts(char **argv)
         if (opt[1] == 0 || opt[2] != 0) usage("unknown option", opt);
         switch (opt[1]) {
             case 'b':
-                add_bundle(*argv++);
+                add_bundle(mgr, *argv++);
                 break;
             case 'i':
                 initialize_bundles = 1;
@@ -104,23 +105,21 @@ int
 main(int argc, char **argv)
 {
     int r;
-    spht dir;
     struct event_base *ev_base;
+    struct manager mgr = {};
 
     host_addr.s_addr = INADDR_ANY;
     progname = *argv;
-    opts(argv + 1);
+    opts(&mgr, argv + 1);
 
-    dir = make_spht(0);
-
-    r = bundles_init(dir); // Read and index the files
-    if (r == -1) usage("Try the -b option", 0);
-    if (r == -2) return warnx("cannot continue"), 2;
+    r = manager_init(&mgr);
+    if (r == -1) return warnx("cannot continue"), 2;
+    if (r == -2) usage("Try the -b option", 0);
 
     prot_init();
     ev_base = event_base_new();
     if (!ev_base) return warn("event_base_new"), 2;
-    net_init(ev_base, host_addr, memcache_port, http_port, dir);
+    net_init(ev_base, host_addr, memcache_port, http_port, &mgr);
 
     prot_bootstrap();
     r = net_loop(ev_base);

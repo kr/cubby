@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "dirent.h"
+#include "region.h"
 #include "util.h"
 
 static struct dirent invalid_dirent_s = {};
@@ -33,3 +34,13 @@ dirent_matches(dirent d, uint32_t *key)
     return d->key[0] == key[0] && d->key[1] == key[1] && d->key[2] == key[2];
 }
 
+void
+dirent_set_rdesc_local(dirent d, int i, region r, blob b)
+{
+    rdesc_local desc = (rdesc_local) &d->rdescs[i];
+
+    desc->flags |= RDESC_LOCAL;
+    //desc->flags &= ~RDESC_REMOTE;
+    desc->reg = r->id;
+    desc->off = region_blob_offset(r, b);
+}

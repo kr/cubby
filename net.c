@@ -13,7 +13,7 @@
 #include <event2/http.h>
 
 #include "http.h"
-#include "spht.h"
+#include "manager.h"
 #include "net.h"
 #include "util.h"
 
@@ -68,7 +68,7 @@ make_listen_socket(struct in_addr host_addr, int port)
 
 void
 net_init(struct event_base *ev_base, struct in_addr host_addr,
-         int memcache_port, int http_port, spht dir)
+         int memcache_port, int http_port, manager mgr)
 {
     int r;
     struct evhttp *ev_http;
@@ -91,8 +91,8 @@ net_init(struct event_base *ev_base, struct in_addr host_addr,
             exit(3);
         }
 
-        evhttp_set_gencb(ev_http, http_handle_generic, dir);
-        evhttp_set_cb(ev_http, "/", http_handle_root, dir);
+        evhttp_set_gencb(ev_http, http_handle_generic, mgr);
+        evhttp_set_cb(ev_http, "/", http_handle_root, mgr);
     }
 
 }

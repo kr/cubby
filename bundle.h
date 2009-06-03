@@ -9,6 +9,7 @@
 #endif /* else we get int types from config.h */
 
 #include "region.h"
+#include "manager.h"
 #include "spht.h"
 
 #define BUNDLE_VERSION 1
@@ -35,11 +36,11 @@ typedef struct bundle {
 
 extern int initialize_bundles;
 
-int add_bundle(char *name);
+int add_bundle(manager mgr, char *name);
 void bundle_sync(bundle b, int sync);
-int bundles_init(spht directory);
+int bundles_init(manager mgr);
 uint16_t bundles_count();
-bundle bundle_get(uint16_t i);
+bundle bundle_get(manager mgr, uint16_t i);
 region_storage bundle_get_region_storage(bundle b, uint16_t i);
 
 #endif //bundle_h

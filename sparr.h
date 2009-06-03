@@ -10,6 +10,8 @@
 
 #include <sys/types.h>
 
+typedef struct sparr *sparr;
+
 #include "dirent.h"
 
 #define GROUP_SIZE 48
@@ -20,11 +22,11 @@ typedef struct spgroup {
     dirent *slots;
 } *spgroup;
 
-typedef struct sparr {
+struct sparr {
     size_t cap; // Capacity of this array.
     size_t fill; // How many buckets are occupied.
     spgroup groups[];
-} *sparr;
+};
 
 
 spgroup make_spgroup();

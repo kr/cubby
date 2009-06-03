@@ -10,14 +10,16 @@
 
 #include <sys/types.h>
 
+typedef struct spht *spht;
+
 #include "dirent.h"
 #include "sparr.h"
 
-typedef struct spht {
+struct spht {
     size_t ndel;
     size_t enlarge_threshold;
     sparr table;
-} *spht;
+};
 
 
 spht make_spht(size_t cap);

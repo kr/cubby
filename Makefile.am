@@ -9,19 +9,20 @@ dist_doc_DATA = \
 
 cubbyd_SOURCES = \
   cubbyd.c \
-  blob.c blob.h \
-  bundle.c bundle.h \
   http.c http.h \
   net.c net.h \
   prot.c prot.h \
-  region.c region.h \
   $(templates) \
   $(shared_sources)
 
 templates = root.html
 
 shared_sources = \
+  blob.c blob.h \
+  bundle.c bundle.h \
   dirent.c dirent.h \
+  manager.c manager.h \
+  region.c region.h \
   sha512.c sha512.h \
   sparr.c sparr.h \
   spht.c spht.h \
@@ -29,6 +30,7 @@ shared_sources = \
 
 unit_tests = \
   check-dirent.c \
+  check-manager.c \
   check-sha512.c \
   check-sparr.c \
   check-spht.c \
