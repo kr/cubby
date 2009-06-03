@@ -22,12 +22,14 @@ templates = root.html
 
 shared_sources = \
   dirent.c dirent.h \
+  sha512.c sha512.h \
   sparr.c sparr.h \
   spht.c spht.h \
   util.c util.h
 
 unit_tests = \
   check-dirent.c \
+  check-sha512.c \
   check-sparr.c \
   check-spht.c \
   check-util.c
