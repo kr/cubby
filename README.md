@@ -1,5 +1,7 @@
 # Cubby Readme
 
+Store billions of photos easily and efficiently.
+
 Cubby is a distributed key-value store for static blobs. It is simple, fast,
 scalable, and tuned for the datacenter.
 
