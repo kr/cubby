@@ -1,0 +1,9 @@
+#!/bin/sh
+
+old=`cat "$1"`
+cur=`git describe | sed 's/^v//'`
+
+if test "$old" != "$cur"
+then
+  printf "$cur" > "$1"
+fi

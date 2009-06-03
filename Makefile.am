@@ -49,13 +49,18 @@ check: cutcheck
 cutcheck.c: cutgen $(unit_tests)
 	$(builddir)/$< -o $@ $(^:$<=)
 
-$(srcdir)/version.m4:
+$(srcdir)/version.m4: | update-version-if-necessary
 	printf `git describe` | sed 's/^v//' > $@
+
+update-version-if-necessary:
+	@$(srcdir)/check-version $(srcdir)/version.m4
 
 %.o: %.s
 	$(AS) -o $@ $^
 
 %.s: %.html
 	$(srcdir)/reslink $^ $@
+
+.PHONY: update-version-if-necessary
 
 ACLOCAL_AMFLAGS = -I m4
