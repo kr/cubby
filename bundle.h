@@ -36,10 +36,10 @@ typedef struct bundle {
 
 extern int initialize_bundles;
 
+int bundle_open(bundle b);
+
 int add_bundle(manager mgr, char *name);
 void bundle_sync(bundle b, int sync);
-int bundles_init(manager mgr);
-uint16_t bundles_count();
 bundle bundle_get(manager mgr, uint16_t i);
 region_storage bundle_get_region_storage(bundle b, uint16_t i);
 

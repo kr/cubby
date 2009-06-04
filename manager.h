@@ -46,6 +46,4 @@ void manager_delete_blob(manager m, dirent d);
 region manager_get_region(manager m, dirent d);
 blob manager_get_blob(manager m, dirent d);
 
-int regions_init(manager mgr, uint16_t count);
-
 #endif //manager_h

@@ -4,20 +4,6 @@
 #include "manager.h"
 #include "util.h"
 
-int
-manager_init(manager m)
-{
-    int r;
-
-    m->directory = make_spht(0);
-    if (!m->directory) return warnx("making directory"), -1;
-
-    r = bundles_init(m); // Read and index the files
-    if (r < 0) return r;
-
-    return 0;
-}
-
 void
 manager_add_free_region(manager m, region r)
 {
@@ -93,17 +79,16 @@ region_close_to_full(region r)
     return 0;
 }
 
-int
-regions_init(manager mgr, uint16_t count)
+static int
+manager_read_regions(manager mgr, uint16_t count)
 {
-    int nbundles, i, j, n = 0;
+    int i, j, n = 0;
 
     mgr->all_regions = malloc(sizeof(struct region) * count);
     if (!mgr->all_regions) return warn("malloc"), -1;
     mgr->nregions = count;
 
-    nbundles = bundles_count();
-    for (i = 0; i < nbundles; i++) {
+    for (i = 0; i < mgr->nbundles; i++) {
         bundle bun = bundle_get(mgr, i);
         for (j = 0; j < bun->nregions; j++) {
             blob bl;
@@ -155,3 +140,33 @@ regions_init(manager mgr, uint16_t count)
 
     return 0;
 }
+
+int
+manager_init(manager m)
+{
+    int i, r;
+    size_t nregions = 0;
+
+    m->directory = make_spht(0);
+    if (!m->directory) return warnx("making directory"), -1;
+
+    if (m->nbundles < 1) return raw_warnx("no bundles defined"), -1;
+
+    for (i = 0; i < m->nbundles; i++) {
+        bundle b = m->all_bundles + i;
+        r = bundle_open(b);
+        if (r == -1) {
+            warnx("error with bundle %s; skipping", b->name);
+            continue;
+        }
+        nregions += b->nregions;
+    }
+
+    if (nregions < 1) return warnx("no valid regions"), -2;
+
+    r = manager_read_regions(m, nregions);
+    if (r == -1) return warnx("manager_read_regions"), -2;
+
+    return 0;
+}
+

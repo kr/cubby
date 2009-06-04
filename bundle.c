@@ -16,9 +16,6 @@
 
 int initialize_bundles = 0;
 
-// This points to an array of structs, not a single one.
-static int nbundles = 0;
-
 /* returns 0 on success, -1 on error */
 int
 add_bundle(manager mgr, char *name)
@@ -26,25 +23,19 @@ add_bundle(manager mgr, char *name)
     struct bundle *new_bundles;
 
     new_bundles = realloc(mgr->all_bundles,
-                          sizeof(struct bundle) * (nbundles + 1));
+                          sizeof(struct bundle) * (mgr->nbundles + 1));
     if (!new_bundles) return warn("realloc"), -1;
 
     mgr->all_bundles = new_bundles;
 
-    mgr->all_bundles[nbundles].name = name;
-    mgr->all_bundles[nbundles].tot_size = 0;
-    mgr->all_bundles[nbundles].reg_size = 0;
-    mgr->all_bundles[nbundles].storage = 0;
-    mgr->all_bundles[nbundles].nregions = 0;
+    mgr->all_bundles[mgr->nbundles].name = name;
+    mgr->all_bundles[mgr->nbundles].tot_size = 0;
+    mgr->all_bundles[mgr->nbundles].reg_size = 0;
+    mgr->all_bundles[mgr->nbundles].storage = 0;
+    mgr->all_bundles[mgr->nbundles].nregions = 0;
 
-    ++nbundles;
+    ++mgr->nbundles;
     return 0;
-}
-
-uint16_t
-bundles_count()
-{
-    return nbundles;
 }
 
 bundle
@@ -90,7 +81,7 @@ bundle_init(bundle b)
     return 0;
 }
 
-static int
+int
 bundle_open(bundle b)
 {
     int fd, r;
@@ -143,32 +134,6 @@ bundle_open(bundle b)
         munmap(b->storage, b->tot_size);
         return warnx("bundle version mismatch"), -1;
     }
-    return 0;
-}
-
-int
-bundles_init(manager mgr)
-{
-    int i, r;
-    size_t nregions = 0;
-
-    if (nbundles < 1) return raw_warnx("no bundles defined"), -1;
-
-    for (i = 0; i < nbundles; i++) {
-        bundle b = mgr->all_bundles + i;
-        r = bundle_open(b);
-        if (r == -1) {
-            warnx("error with bundle %s; skipping", b->name);
-            continue;
-        }
-        nregions += b->nregions;
-    }
-
-    if (nregions < 1) return warnx("no valid regions"), -2;
-
-    r = regions_init(mgr, nregions);
-    if (r == -1) return warnx("regions_init"), -2;
-
     return 0;
 }
 
