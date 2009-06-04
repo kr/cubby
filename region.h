@@ -47,8 +47,6 @@ void region_delete_blob(region r, blob b);
 
 void region_init(region r, int id, region_storage storage, size_t size);
 
-int regions_init(manager mgr, uint16_t count);
-
 size_t region_blob_offset(region r, blob b);
 
 blob region_get_blob_by_off(region r, uint32_t off);
