@@ -21,6 +21,17 @@ region_get_blob_by_off(region r, uint32_t off)
     return (blob) (r->storage->blobs + off);
 }
 
+int
+region_has_space(region r, size_t size)
+{
+    char *next_free;
+    blob new = (blob) r->free;
+
+    // Find the end of this blob's space.
+    next_free = ALIGN(new->data + size, char *);
+    return next_free < r->top;
+}
+
 blob
 region_allocate_blob(region r, size_t size)
 {

@@ -30,7 +30,13 @@ manager_add_free_region(manager m, region r)
 region
 manager_pick_region(manager m, size_t size)
 {
-    return m->free_regions_head;
+    region r;
+
+    r = m->free_regions_head;
+    while (r && !region_has_space(r, size)) {
+        m->free_regions_head = r = r->next;
+    }
+    return r;
 }
 
 blob
@@ -41,6 +47,8 @@ manager_allocate_blob(manager m, dirent d, size_t size)
 
     r = manager_pick_region(m, size);
     if (!r) return 0;
+
+    raw_warnx("allocating blob in region %d\n", r->id);
 
     b = region_allocate_blob(r, size);
     if (!b) return 0;

@@ -38,6 +38,8 @@ struct region {
     region next; // for linked lists
 };
 
+int region_has_space(region r, size_t n);
+
 /* Reserves space for size bytes in region r. Does not touch the disk. */
 blob region_allocate_blob(region r, size_t size);
 
