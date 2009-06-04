@@ -22,14 +22,15 @@ region_get_blob_by_off(region r, uint32_t off)
 }
 
 int
-region_has_space(region r, size_t size)
+region_has_space_for_blob(region r, size_t size)
 {
     char *next_free;
     blob new = (blob) r->free;
 
     // Find the end of this blob's space.
     next_free = ALIGN(new->data + size, char *);
-    return next_free < r->top;
+
+    return next_free <= r->top;
 }
 
 blob
@@ -42,7 +43,7 @@ region_allocate_blob(region r, size_t size)
 
     // Find the end of this blob's space.
     next_free = ALIGN(new->data + size, char *);
-    if (next_free >= r->top) return 0;
+    if (next_free > r->top) return 0;
 
     r->free = next_free; // Actually allocate the space.
 

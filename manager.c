@@ -33,7 +33,7 @@ manager_pick_region(manager m, size_t size)
     region r;
 
     r = m->free_regions_head;
-    while (r && !region_has_space(r, size)) {
+    while (r && !region_has_space_for_blob(r, size)) {
         m->free_regions_head = r = r->next;
     }
     return r;

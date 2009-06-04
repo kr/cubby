@@ -31,6 +31,7 @@ shared_sources = \
 unit_tests = \
   check-dirent.c \
   check-manager.c \
+  check-region.c \
   check-sha512.c \
   check-sparr.c \
   check-spht.c \
