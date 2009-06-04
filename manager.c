@@ -7,21 +7,27 @@
 void
 manager_add_free_region(manager m, region r)
 {
-    if (!m->free_regions_head) m->free_regions_head = r;
-    if (m->free_regions_tail) m->free_regions_tail->next = r;
-    m->free_regions_tail = r;
-    r->next = 0;
+    heap_give(&m->region_pool, r);
 }
 
+/* This will REMOVE a region from the free pool. The caller is responsible for
+   putting it back. */
 region
 manager_pick_region(manager m, size_t size)
 {
-    region r;
+    region r, tmp = 0;
 
-    r = m->free_regions_head;
+    // Pull out regions until we find one that's got enough space.
+    r = heap_take(&m->region_pool);
     while (r && !region_has_space_for_blob(r, size)) {
-        m->free_regions_head = r = r->next;
+        r->next = tmp;
+        tmp = r;
+        r = heap_take(&m->region_pool);
     }
+
+    // Put back the ones we didn't use.
+    for (; tmp; tmp = tmp->next) heap_give(&m->region_pool, tmp);
+
     return r;
 }
 
@@ -40,6 +46,9 @@ manager_allocate_blob(manager m, dirent d, size_t size)
     if (!b) return 0;
 
     dirent_set_rdesc_local(d, 0, r, b);
+
+    /* Put r back in the free pool. */
+    heap_give(&m->region_pool, r);
 
     return b;
 }
@@ -146,6 +155,9 @@ manager_init(manager m)
 {
     int i, r;
     size_t nregions = 0;
+
+    // Initialize the heap if necessary
+    heap_init(&m->region_pool, (cmp_fn) region_space_cmp);
 
     m->directory = make_spht(0);
     if (!m->directory) return warnx("making directory"), -1;

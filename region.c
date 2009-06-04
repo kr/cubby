@@ -67,3 +67,26 @@ region_init(region r, int id, region_storage storage, size_t size)
     r->next = 0;
 }
 
+static size_t
+region_free_space(region r)
+{
+    return r->top - r->free;
+}
+
+int
+region_space_cmp(region a, region b)
+{
+    size_t sa, sb;
+
+    sa = region_free_space(a);
+    sb = region_free_space(b);
+
+    if (sa > sb) return 1;
+    if (sa < sb) return -1;
+
+    if (a->id > b->id) return 1;
+    if (a->id < b->id) return -1;
+
+    return 0;
+}
+

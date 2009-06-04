@@ -11,6 +11,7 @@
 typedef struct manager *manager;
 
 #include "region.h"
+#include "heap.h"
 #include "spht.h"
 
 /* This is sort of a dumping ground for all the global state. This is slightly
@@ -23,9 +24,8 @@ struct manager {
     struct region *all_regions;
     int nregions;
 
-    // Linked list of available regions. They are not necessarily empty.
-    region free_regions_head;
-    region free_regions_tail;
+    // Regions with available space. They are not necessarily empty.
+    struct heap region_pool;
 
     spht directory;
 };

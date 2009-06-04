@@ -35,7 +35,7 @@ struct region {
     char *free;
     uint16_t id;
     region_storage storage;
-    region next; // for linked lists
+    region next;
 };
 
 int region_has_space_for_blob(region r, size_t n);
@@ -50,5 +50,7 @@ void region_init(region r, int id, region_storage storage, size_t size);
 size_t region_blob_offset(region r, blob b);
 
 blob region_get_blob_by_off(region r, uint32_t off);
+
+int region_space_cmp(region a, region b);
 
 #endif //region_h

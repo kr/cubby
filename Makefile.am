@@ -21,6 +21,7 @@ shared_sources = \
   blob.c blob.h \
   bundle.c bundle.h \
   dirent.c dirent.h \
+  heap.c heap.h \
   manager.c manager.h \
   region.c region.h \
   sha512.c sha512.h \
@@ -30,6 +31,7 @@ shared_sources = \
 
 unit_tests = \
   check-dirent.c \
+  check-heap.c \
   check-manager.c \
   check-region.c \
   check-sha512.c \
