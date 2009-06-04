@@ -128,7 +128,7 @@ http_handle_blob_put(struct evhttp_request *req, manager mgr)
 
     /* Okay! Now actually copy the data in. Finally. */
     r = evbuffer_remove(in, bl->data, len);
-    if (r == -1) {
+    if (r < len) {
         manager_delete_blob(mgr, de); // put the space back
         spht_rm(mgr->directory, de->key);
         free(de);
