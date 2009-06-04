@@ -5,6 +5,7 @@
 #include "cut.h"
 
 static struct manager mgr = {};
+static struct region r1, r2;
 
 void
 __CUT_BRINGUP__manager()
@@ -45,6 +46,69 @@ __CUT__manager_add_two_free_regions()
 
 void
 __CUT_TAKEDOWN__manager()
+{
+}
+
+static char s1[1024], s2[2048];
+
+void
+__CUT_BRINGUP__manager_with_regions()
+{
+    region_init(&r1, 0, (region_storage) s1, sizeof(s1));
+    region_init(&r2, 0, (region_storage) s2, sizeof(s2));
+    manager_add_free_region(&mgr, &r1);
+    manager_add_free_region(&mgr, &r2);
+}
+
+void
+__CUT__manager_with_regions_pick_first()
+{
+    region r;
+
+    r = manager_pick_region(&mgr, 500);
+    ASSERT(r == &r1, "");
+}
+
+void
+__CUT__manager_with_regions_pick_second()
+{
+    region r;
+
+    r = manager_pick_region(&mgr, 1500);
+    ASSERT(r == &r2, "");
+}
+
+void
+__CUT__manager_with_regions_pick_lots()
+{
+    region r;
+
+    r = manager_pick_region(&mgr, 50);
+    ASSERT(r == &r1, "");
+    r = manager_pick_region(&mgr, 50);
+    ASSERT(r == &r1, "");
+    r = manager_pick_region(&mgr, 50);
+    ASSERT(r == &r1, "");
+    r = manager_pick_region(&mgr, 50);
+    ASSERT(r == &r1, "");
+    r = manager_pick_region(&mgr, 50);
+    ASSERT(r == &r1, "");
+    r = manager_pick_region(&mgr, 50);
+    ASSERT(r == &r1, "");
+    r = manager_pick_region(&mgr, 50);
+    ASSERT(r == &r1, "");
+    r = manager_pick_region(&mgr, 50);
+    ASSERT(r == &r1, "");
+    r = manager_pick_region(&mgr, 50);
+    ASSERT(r == &r1, "");
+    r = manager_pick_region(&mgr, 50);
+    ASSERT(r == &r1, "");
+    r = manager_pick_region(&mgr, 50);
+    ASSERT(r == &r1, "");
+}
+
+void
+__CUT_TAKEDOWN__manager_with_regions()
 {
 }
 
