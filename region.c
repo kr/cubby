@@ -63,6 +63,16 @@ region_close_to_full(region r)
     return 0;
 }
 
+void
+region_init(region r, int id, region_storage storage, size_t size)
+{
+    r->id = id;
+    r->storage = storage;
+    r->free = r->storage->blobs;
+    r->top = ((char *) storage) + size;
+    r->next = 0;
+}
+
 int
 regions_init(manager mgr, uint16_t count)
 {
@@ -77,21 +87,15 @@ regions_init(manager mgr, uint16_t count)
         bundle bun = bundle_get(mgr, i);
         for (j = 0; j < bun->nregions; j++) {
             blob bl;
-            size_t reg_total_size, reg_total_cap;
+            size_t size;
             region reg = &mgr->all_regions[n++];
-            reg->id = n - 1;
 
             // Total size of the region, including the headers
-            reg_total_size = 1 << REGION_BITS;
-            if (j == bun->nregions - 1) { // the last region might be shorter
-                reg_total_size = bun->reg_size % reg_total_size;
-            }
+            size = 1 << REGION_BITS;
+            if (j == bun->nregions - 1) size = bun->reg_size % size;
+            // the last region might be shorter
 
-            // Capacity of the region, not including the headers
-            reg_total_cap = reg_total_size - sizeof(struct region);
-
-            reg->storage = bundle_get_region_storage(bun, j);
-            reg->top = ((char *) reg->storage) + reg_total_cap;
+            region_init(reg, n - 1, bundle_get_region_storage(bun, j), size);
 
             for (bl = (blob) reg->storage->blobs; ; bl = blob_next(bl)) {
                 int r;

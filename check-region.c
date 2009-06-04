@@ -14,14 +14,33 @@ static char reg_storage[BUFFER_SIZE] = {};
 static struct region reg = {};
 
 void
+__CUT_BRINGUP__void_region()
+{
+}
+
+void
+__CUT__void_region_constructor()
+{
+#define ID 7
+
+    region_init(&reg, ID, (region_storage) reg_storage, sizeof(reg_storage));
+
+    ASSERT(reg.id == ID, "");
+    ASSERT(reg.storage == (region_storage) reg_storage, "");
+    ASSERT(reg.free == reg.storage->blobs, "");
+    ASSERT(reg.top == reg_storage + sizeof(reg_storage), "");
+    ASSERT(reg.next == 0, "");
+}
+
+void
+__CUT_TAKEDOWN__void_region()
+{
+}
+
+void
 __CUT_BRINGUP__empty_region()
 {
-    // TODO refactor this into a region constructor
-    reg.id = 0;
-    reg.storage = (region_storage) reg_storage;
-    reg.free = reg.storage->blobs;
-    reg.top = reg_storage + sizeof(reg_storage);
-    reg.next = 0;
+    region_init(&reg, 0, (region_storage) reg_storage, sizeof(reg_storage));
 }
 
 void
@@ -63,11 +82,20 @@ __CUT_TAKEDOWN__empty_region()
 void
 __CUT_BRINGUP__full_region()
 {
+    region_init(&reg, 0, (region_storage) reg_storage, sizeof(reg_storage));
+    region_allocate_blob(&reg, MAX_BLOB);
 }
 
 void
-__CUT__full_region_with_no_free_regions()
+__CUT__full_region_should_have_no_space()
 {
+    ASSERT(!region_has_space_for_blob(&reg, 0), "should not have space");
+}
+
+void
+__CUT__full_region_allocate_blob()
+{
+    ASSERT(!region_allocate_blob(&reg, 0), "should not have space");
 }
 
 void
