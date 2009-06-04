@@ -38,30 +38,11 @@ region_allocate_blob(region r, size_t size)
     return new;
 }
 
-static void
+void
 region_delete_blob(region r, blob b)
 {
     warnx("STUB");
     exit(66);
-}
-
-void
-region_unallocate_blob(region r, blob b)
-{
-    blob next;
-
-    next = blob_next(b);
-
-    /* If the free pointer is just after this blob, that means this one was
-       most recently allocated. */
-    if (((char *) next) == r->free) {
-        /* Just reset the free ptr. blob should now be considered invalid. */
-        r->free = (char *) b;
-    } else {
-        /* Tsk tsk. The caller is trying to return a blob in the middle
-           somewhere. So we'll just fall back to the full-on delete. */
-        region_delete_blob(r, b);
-    }
 }
 
 static int

@@ -41,12 +41,7 @@ struct region {
 /* Reserves space for size bytes in region r. Does not touch the disk. */
 blob region_allocate_blob(region r, size_t size);
 
-/* Put back the space you just got (without touching the disk). Use this if
-   something else went wrong and you don't want the space any more. You should
-   only use this if no other blobs have been allocated in this region since you
-   got yours. If you don't meet that criterion, this function will fall back to
-   region_delete_blob, which hits the disk. */
-void region_unallocate_blob(region r, blob b);
+void region_delete_blob(region r, blob b);
 
 int regions_init(manager mgr, uint16_t count);
 

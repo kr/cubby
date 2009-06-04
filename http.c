@@ -83,13 +83,14 @@ http_handle_blob_put(struct evhttp_request *req, manager mgr)
     size_t len;
     uint32_t k[3] = {};
     dirent de;
-    region reg;
     char *duri;
     char *name;
     blob bl;
     int r;
 
+    // Grr. Why can't I allocate my own buffer on the stack if I want?
     duri = evhttp_decode_uri(req->uri);
+
     name = duri + 1; // skip the leading slash
 
     raw_warnx("name (%d bytes) is %s", strlen(name), name);
@@ -108,36 +109,27 @@ http_handle_blob_put(struct evhttp_request *req, manager mgr)
         return;
     }
 
-    reg = manager_pick_region(mgr, len);
-    if (!reg) {
-        evhttp_send_reply(req, HTTP_INTERNAL_ERROR, "No free region", 0);
-        return;
-    }
-
-    bl = region_allocate_blob(reg, len);
-    if (!bl) { // can't happen
-        evhttp_send_reply(req, HTTP_INTERNAL_ERROR, "No space for blob", 0);
-        return;
-    }
-
     // We only allocate space for one rdesc because we probably won't be
     // responsible for this dirent. We're only concerned with blob storage
     // right now.
     de = make_dirent(k, 1);
     if (!de) {
-        region_unallocate_blob(reg, bl); // put the space back
         evhttp_send_reply(req, HTTP_INTERNAL_ERROR, "Out of memory", 0);
         return;
     }
 
-    dirent_set_rdesc_local(de, 0, reg, bl);
+    bl = manager_allocate_blob(mgr, de, len);
+    if (!bl) {
+        evhttp_send_reply(req, HTTP_INTERNAL_ERROR, "No space for blob", 0);
+        return;
+    }
 
     spht_set(mgr->directory, de);
 
     /* Okay! Now actually copy the data in. Finally. */
     r = evbuffer_remove(in, bl->data, len);
     if (r == -1) {
-        region_unallocate_blob(reg, bl); // put the space back
+        manager_delete_blob(mgr, de); // put the space back
         spht_rm(mgr->directory, de->key);
         free(de);
         evhttp_send_reply(req, HTTP_INTERNAL_ERROR, "can't drain buffer", 0);

@@ -44,3 +44,17 @@ dirent_set_rdesc_local(dirent d, int i, region r, blob b)
     desc->reg = r->id;
     desc->off = region_blob_offset(r, b);
 }
+
+rdesc_local
+dirent_get_rdesc_local(dirent d)
+{
+    int i;
+
+    for (i = 0; i < d->len; i++) {
+        if (d->rdescs[i].flags & RDESC_LOCAL) break;
+    }
+    if (i >= d->len) return 0;
+
+    return (rdesc_local) &d->rdescs[i];
+}
+

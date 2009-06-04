@@ -34,19 +34,47 @@ manager_pick_region(manager m, size_t size)
 }
 
 blob
+manager_allocate_blob(manager m, dirent d, size_t size)
+{
+    region r;
+    blob b;
+
+    r = manager_pick_region(m, size);
+    if (!r) return 0;
+
+    b = region_allocate_blob(r, size);
+    if (!b) return 0;
+
+    dirent_set_rdesc_local(d, 0, r, b);
+
+    return b;
+}
+
+region
+manager_get_region(manager m, dirent d)
+{
+    rdesc_local rd;
+
+    rd = dirent_get_rdesc_local(d);
+    return &m->all_regions[rd->reg];
+}
+
+blob
 manager_get_blob(manager m, dirent d)
 {
     rdesc_local rd;
-    region r;
-    int i;
 
-    for (i = 0; i < d->len; i++) {
-        if (d->rdescs[i].flags & RDESC_LOCAL) break;
-    }
-    if (i >= d->len) return 0;
-
-    rd = (rdesc_local) &d->rdescs[i];
-    r = &m->all_regions[rd->reg];
-    return region_get_blob_by_off(r, rd->off);
+    rd = dirent_get_rdesc_local(d);
+    return region_get_blob_by_off(manager_get_region(m, d), rd->off);
 }
 
+void
+manager_delete_blob(manager m, dirent d)
+{
+    blob b;
+    region r;
+
+    r = manager_get_region(m, d);
+    b = manager_get_blob(m, d);
+    region_delete_blob(r, b);
+}

@@ -42,5 +42,6 @@ dirent make_dirent(uint32_t *key, uint8_t len);
 int dirent_matches(dirent d, uint32_t *key);
 
 void dirent_set_rdesc_local(dirent d, int i, region r, blob b);
+rdesc_local dirent_get_rdesc_local(dirent d);
 
 #endif //dirent_h
