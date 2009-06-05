@@ -140,12 +140,13 @@ spgroup_set(spgroup g, uint16_t i, dirent v)
     if (!bmtest(g->mask, i)) {
         dirent *nslots;
 
-        nslots = realloc(g->slots, sizeof(dirent) * (g->fill + 1));
-        if (!nslots) return warn("realloc"), -1;
+        nslots = malloc(sizeof(dirent) * (g->fill + 1));
+        if (!nslots) return warn("malloc"), -1;
 
-        memmove(nslots + slot + 1, nslots + slot,
-                sizeof(dirent) * (g->fill - slot));
-
+        memcpy(nslots, g->slots, sizeof(dirent) * slot);
+        memcpy(nslots + slot + 1, g->slots + slot,
+               sizeof(dirent) * (g->fill - slot));
+        free(g->slots);
         g->slots = nslots;
         g->fill++;
         bmset(g->mask, i);
