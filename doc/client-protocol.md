@@ -37,10 +37,11 @@ list can be retrieved and updated from any node, either by a special command or
 by fetching a special name. This list will include metadata about the nodes,
 including load and free space. When storing a blob, the client should try to
 pick a server with sufficient capacity (both storage and load) to handle the
-request. We can play with various heuristics for load-leveling and
+request. We can play with various heuristics for load-leveling and managing
+free space.
 
-Keys are 128 bits long. The key for a name is calculated as the first 128
-bits of the SHA-256 hash of the name.
+Keys are 12 bytes long. The key for a name is calculated as the 12
+least-significant bytes, in little-endian order, of SHA-512 hash of the name.
 
 ## Format
 

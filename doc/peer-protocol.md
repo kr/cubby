@@ -7,48 +7,32 @@ PING:
 
     reply PING
 
-STORE key len r nc rc dc bc bytes:
+PUT key len w rw bw data:
 
-    let n = the closest known active node to key
+    if key is already here and complete, reply HAVE key (already)
 
-    if n is us:
-      if key is already here and complete, reply HAVE key
-      allocate len bytes under key in the persistent store
-      reply RETRIEVE key 0 0
-      set a retrieve timer for the peer
-      find appropriate nodes for replication and forward the request
+    allocate len bytes under key in the persistent store
+    store the data
 
-    else:
-      let s = the closest N known active nodes to key
-      reply SERVERS s
+    pick bw - 1 servers and forward the request
 
-RETRIEVE key offset bitmask:
+    reply HAVE key (ok)
 
-    if key is here:
+    pick w - bw - 1 servers (spanning rw - 1 racks) and forward the request
+
+    find the closest N good nodes to key and send them dirent updates
+
+GET key (maybe with offset and len):
+
+    if key's data is here:
       reply DATA
+    else if we have the dirent D:
+      let S = the least-loaded server in D
+    else if we don't know anything:
+      let S = the closest N known active nodes to key
+
+    if the client supports redirects:
+      reply SERVERS S
     else:
-      let s = the closest N known active nodes to key
-      reply SERVERS s
+      proxy the request to one of S
 
-SERVERS server...:
-
-    ...
-
-DATA offset bytes:
-
-    reset the retrieve timer for the peer
-    store the block
-    forward it to the other nodes
-    when we are complete, and bc other nodes are complete, reply HAVE
-
-HAVE key:
-
-    ...
-
-TIMEOUT node-key action blob-key:
-
-    if action is ping:
-      ...
-    else if action is retrieve:
-      let n = node-key
-      n <- RETRIEVE blob-key (missing blocks)
