@@ -120,7 +120,7 @@ spgroup_rm(spgroup g, uint16_t i)
     slot = bmcount(g->mask, i);
     memcpy(nslots, g->slots, sizeof(dirent) * slot);
     memcpy(nslots + slot, g->slots + slot + 1,
-           sizeof(dirent) * (GROUP_SIZE - slot));
+           sizeof(dirent) * (g->fill - slot));
     free(g->slots);
     g->slots = nslots;
     g->fill--;
