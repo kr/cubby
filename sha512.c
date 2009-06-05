@@ -26,6 +26,7 @@
 
 
 #include <string.h>
+#include <stddef.h>
 
 #ifdef WORDS_BIGENDIAN
 # define SWAP(n) (n)
