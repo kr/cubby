@@ -120,7 +120,7 @@ spgroup_rm(spgroup g, uint16_t i)
     slot = bmcount(g->mask, i);
     memcpy(nslots, g->slots, sizeof(dirent) * slot);
     memcpy(nslots + slot, g->slots + slot + 1,
-           sizeof(dirent) * (g->fill - slot));
+           sizeof(dirent) * (g->fill - slot - 1));
     free(g->slots);
     g->slots = nslots;
     g->fill--;
@@ -170,7 +170,7 @@ sparr
 make_sparr(int cap)
 {
     sparr a;
-    int ngroups = cap / GROUP_SIZE;
+    int ngroups = (cap - 1) / GROUP_SIZE + 1; // ceiling division
 
     a = malloc(sizeof(struct sparr) + ngroups * sizeof(spgroup));
     if (!a) return warn("malloc"), (sparr) 0;
