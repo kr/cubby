@@ -54,7 +54,7 @@ bmclear(uint8_t *bm, uint16_t i)
 static uint16_t
 bmcount(uint8_t *bm, uint16_t i)
 {
-    uint16_t c, res;
+    uint16_t c, res = 0;
     static const char cbits[256] = {
         0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
         1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
