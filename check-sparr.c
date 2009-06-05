@@ -81,9 +81,56 @@ __CUT__empty_spgroup_setting_second_then_first()
     r = spgroup_set(g, 0, (dirent) 7);
 
     ASSERT(!r, "should claim success");
-    ASSERT(g->fill == 2, "g should contain one thing");
+    ASSERT(g->fill == 2, "g should contain two things");
     ASSERT(((int) spgroup_get(g, 1)) == 8, "g[1] should be 8");
     ASSERT(spgroup_test(g, 1), "g[1] should be full");
+}
+
+void
+__CUT__empty_spgroup_setting_many()
+{
+    int i, r;
+
+    ASSERT(g->fill == 0, "g should contain 0 things");
+    r = spgroup_set(g, 9, (dirent) 10);
+    ASSERT(!r, "should claim success");
+    ASSERT(g->fill == 1, "g should contain 1 things");
+    r = spgroup_set(g, 6, (dirent) 7);
+    ASSERT(!r, "should claim success");
+    ASSERT(g->fill == 2, "g should contain 2 things");
+    r = spgroup_set(g, 3, (dirent) 4);
+    ASSERT(!r, "should claim success");
+    ASSERT(g->fill == 3, "g should contain 3 things");
+    r = spgroup_set(g, 0, (dirent) 1);
+    ASSERT(!r, "should claim success");
+    ASSERT(g->fill == 4, "g should contain 4 things");
+    r = spgroup_set(g, 4, (dirent) 5);
+    ASSERT(!r, "should claim success");
+    ASSERT(g->fill == 5, "g should contain 5 things");
+    r = spgroup_set(g, 8, (dirent) 9);
+    ASSERT(!r, "should claim success");
+    ASSERT(g->fill == 6, "g should contain 6 things");
+    r = spgroup_set(g, 2, (dirent) 3);
+    ASSERT(!r, "should claim success");
+    ASSERT(g->fill == 7, "g should contain 7 things");
+    r = spgroup_set(g, 7, (dirent) 8);
+    ASSERT(!r, "should claim success");
+    ASSERT(g->fill == 8, "g should contain 8 things");
+    r = spgroup_set(g, 1, (dirent) 2);
+    ASSERT(!r, "should claim success");
+    ASSERT(g->fill == 9, "g should contain 9 things");
+    r = spgroup_set(g, 5, (dirent) 6);
+    ASSERT(!r, "should claim success");
+    printf("g fill is %d\n", g->fill);
+    ASSERT(g->fill == 10, "g should contain 1 things");
+
+    for (i = 0; i < 10; i++) {
+        ASSERT(spgroup_test(g, i), "g[i] should be full");
+        ASSERT(((int) spgroup_get(g, i)) == i + 1, "g[i] should be equal");
+    }
+    for (; i < 48; i++) {
+        ASSERT(!spgroup_test(g, i), "g[i] should be empty");
+    }
 }
 
 void
