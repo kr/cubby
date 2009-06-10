@@ -74,6 +74,7 @@ http_handle_blob_get(struct evhttp_request *req, manager mgr)
 
     evbuffer_add_reference(out, &bl->data, bl->size, 0, 0);
     evhttp_send_reply(req, HTTP_OK, "OK", out);
+    evbuffer_free(out);
 }
 
 static void
@@ -120,6 +121,7 @@ http_handle_blob_put(struct evhttp_request *req, manager mgr)
 
     bl = manager_allocate_blob(mgr, de, len);
     if (!bl) {
+        free(de);
         evhttp_send_reply(req, HTTP_INTERNAL_ERROR, "No space for blob", 0);
         return;
     }
@@ -160,6 +162,7 @@ http_handle_root(struct evhttp_request *req, void *mgr)
     out = evbuffer_new();
     evbuffer_add_reference(out, root_html, root_html_size, 0, 0);
     evhttp_send_reply(req, HTTP_OK, "OK", out);
+    evbuffer_free(out);
 }
 
 static void

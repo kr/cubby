@@ -160,6 +160,7 @@ spgroup_set(spgroup g, uint16_t i, dirent v)
 void
 spgroup_free(spgroup g)
 {
+    if (!g) return;
     free(g->slots);
     free(g);
 }
@@ -170,7 +171,7 @@ sparr
 make_sparr(int cap)
 {
     sparr a;
-    int ngroups = (cap - 1) / GROUP_SIZE + 1; // ceiling division
+    int ngroups = CEILDIV(cap, GROUP_SIZE);
 
     a = malloc(sizeof(struct sparr) + ngroups * sizeof(spgroup));
     if (!a) return warn("malloc"), (sparr) 0;
@@ -241,7 +242,7 @@ sparr_rm(sparr a, size_t i)
 void
 sparr_free(sparr a)
 {
-    int i, ngroups = a->cap / GROUP_SIZE;
+    int i, ngroups = CEILDIV(a->cap, GROUP_SIZE);
 
     for (i = 0; i < ngroups; i++) {
         spgroup_free(a->groups[i]);

@@ -21,9 +21,11 @@
 
 #include "stdlib.h"
 
-#define CEIL_DIV(num, denexp) (1 + ((num - 1) >> denexp))
+#define CEILDIV(num, den) (1 + (((num) - 1) / (den)))
 
-#define ROUND_UP_TO_POWER_OF_TWO(x, k) (CEIL_DIV(x, k) << k)
+#define CEILDIVL(num, denexp) (1 + ((num - 1) >> denexp))
+
+#define ROUND_UP_TO_POWER_OF_TWO(x, k) (CEILDIVL(x, k) << k)
 
 #define ALIGN(a,t) ((t) ROUND_UP_TO_POWER_OF_TWO(((size_t) a), 3))
 

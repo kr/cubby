@@ -13,11 +13,12 @@
 typedef struct sparr *sparr;
 
 #include "dirent.h"
+#include "util.h"
 
 #define GROUP_SIZE 48
 
 typedef struct spgroup {
-    uint8_t mask[(GROUP_SIZE - 1) / 8 + 1]; // ceiling division
+    uint8_t mask[CEILDIV(GROUP_SIZE, 8)];
     uint16_t fill;
     dirent *slots;
 } *spgroup;
