@@ -46,7 +46,7 @@ EXTRA_DIST = reslink
 check_PROGRAMS = cutgen cutcheck
 cutgen_SOURCES = cutgen.c util.c util.h
 cutcheck_SOURCES = cutcheck.c cut.c cut.h $(unit_tests) $(shared_sources)
-CLEANFILES = cutcheck.c $(templates:.html=.o)
+MOSTLYCLEANFILES = cutcheck.c $(templates:.html=.o)
 
 mostlyclean-local:
 	rm -rf *.gcda *.gcno
