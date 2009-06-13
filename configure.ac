@@ -26,7 +26,7 @@ AC_ARG_WITH(event,
 
 test "x$with_event" = xno && AC_MSG_ERROR([Cubby requires libevent.])
 
-AS_HUNT_AROUND([event], [event_assign], [event2/event.h],
+CUBBY_HUNT_AROUND([event], [event_assign], [event2/event.h],
   [],
   [AC_MSG_ERROR([Cubby requires libevent 2.0 or later.])])
 

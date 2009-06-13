@@ -3,10 +3,10 @@ dnl autostars m4 macro for detection of compiler flags
 
 dnl Keith Rarick <kr@xph.us>
 
-dnl AS_HUNT_AROUND()
+dnl CUBBY_HUNT_AROUND()
 dnl Try to find a header for library in common locations.
 
-AC_DEFUN([AS_HUNT_AROUND],
+AC_DEFUN([CUBBY_HUNT_AROUND],
 [
   AC_MSG_CHECKING([for $1 library prefix])
   if test "x$with_$1" = xyes
