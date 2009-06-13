@@ -16,6 +16,8 @@ AS_COMPILER_FLAGS(CUBBY_CFLAGS, "-Wall -Werror")
 AC_PROG_CC
 
 # Checks for libraries.
+CUBBY_ENABLE_GCOV
+
 AC_ARG_WITH(event,
   [AS_HELP_STRING([--with-event],
     [install prefix for libevent @<:@default is yes@:>@])],

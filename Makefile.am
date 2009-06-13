@@ -2,7 +2,7 @@
 
 bin_PROGRAMS = cubbyd
 
-AM_CFLAGS = $(CUBBY_CFLAGS)
+AM_CFLAGS = $(CUBBY_CFLAGS) $(GCOV_CFLAGS)
 
 dist_doc_DATA = \
   README.md \
@@ -47,6 +47,12 @@ check_PROGRAMS = cutgen cutcheck
 cutgen_SOURCES = cutgen.c util.c util.h
 cutcheck_SOURCES = cutcheck.c cut.c cut.h $(unit_tests) $(shared_sources)
 CLEANFILES = cutcheck.c $(templates:.html=.o)
+
+mostlyclean-local:
+	rm -rf *.gcda *.gcno
+
+clean-local:
+	rm -rf *.gcov
 
 cubbyd_LDADD = $(templates:.html=.o)
 

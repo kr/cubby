@@ -21,3 +21,6 @@ cutgen
 core
 core.*
 tags
+*.gcda
+*.gcno
+*.gcov
