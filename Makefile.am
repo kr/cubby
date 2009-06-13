@@ -2,6 +2,8 @@
 
 bin_PROGRAMS = cubbyd
 
+AM_CFLAGS = $(CUBBY_CFLAGS)
+
 dist_doc_DATA = \
   README.md \
   doc/client-protocol.md \

@@ -10,7 +10,7 @@ AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 # Let's not use AM_MAINTAINER_MODE.
 
-AS_COMPILER_FLAGS(CFLAGS, "-Wall -Werror")
+AS_COMPILER_FLAGS(CUBBY_CFLAGS, "-Wall -Werror")
 
 # Checks for programs.
 AC_PROG_CC
