@@ -25,6 +25,7 @@ shared_sources = \
   dirent.c dirent.h \
   heap.c heap.h \
   manager.c manager.h \
+  peer.c peer.h \
   region.c region.h \
   sha512.c sha512.h \
   sparr.c sparr.h \
@@ -35,6 +36,7 @@ unit_tests = \
   check-dirent.c \
   check-heap.c \
   check-manager.c \
+  check-peer.c \
   check-region.c \
   check-sha512.c \
   check-sparr.c \
