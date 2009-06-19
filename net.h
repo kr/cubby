@@ -10,7 +10,7 @@
 
 /* Initialize the network. */
 void net_init(struct event_base *ev_base, struct in_addr host_addr,
-              int memcache_port, int http_port, manager dir);
+              int memcache_port, int http_port, int udp_port, manager mgr);
 
 /* The main dispatch loop. */
 int net_loop(struct event_base *ev_base);

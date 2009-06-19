@@ -17,10 +17,12 @@
 
 #define DEFAULT_MEMCACHE_PORT 11211
 #define DEFAULT_HTTP_PORT 80
+#define DEFAULT_UDP_PORT 20202
 
 static struct in_addr host_addr = {};
 static int memcache_port = DEFAULT_MEMCACHE_PORT,
-           http_port = DEFAULT_HTTP_PORT;
+           http_port = DEFAULT_HTTP_PORT,
+           udp_port = DEFAULT_UDP_PORT;
 
 static void
 usage(char *msg, char *arg)
@@ -36,11 +38,13 @@ usage(char *msg, char *arg)
             " -b FILE  use this bundle file (may be given more than once)\n"
             " -m PORT  memcache, listen on port PORT (default %d)\n"
             " -p PORT  HTTP, listen on port PORT (default %d)\n"
+            " -c PORT  Control protocol, listen on UDP port PORT (default %d)\n"
             " -i       initialize bundles (negates -I)\n"
             " -I       don't initalize bundles (default; negates -i)\n"
             " -v       show version information\n"
             " -h       show this help\n",
-            progname, DEFAULT_MEMCACHE_PORT, DEFAULT_HTTP_PORT);
+            progname, DEFAULT_MEMCACHE_PORT, DEFAULT_HTTP_PORT,
+            DEFAULT_UDP_PORT);
     exit(arg ? 5 : 0);
 }
 
@@ -87,6 +91,9 @@ opts(manager mgr, char **argv)
             case 'm':
                 memcache_port = parse_port(require_arg("-m", *argv++));
                 break;
+            case 'c':
+                udp_port = parse_port(require_arg("-c", *argv++));
+                break;
             case 'p':
                 http_port = parse_port(require_arg("-p", *argv++));
                 break;
@@ -119,7 +126,7 @@ main(int argc, char **argv)
     prot_init();
     ev_base = event_base_new();
     if (!ev_base) return warn("event_base_new"), 2;
-    net_init(ev_base, host_addr, memcache_port, http_port, &mgr);
+    net_init(ev_base, host_addr, memcache_port, http_port, udp_port, &mgr);
 
     prot_bootstrap();
     r = net_loop(ev_base);
