@@ -11,6 +11,7 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 # Let's not use AM_MAINTAINER_MODE.
 
 AS_COMPILER_FLAGS(CUBBY_CFLAGS, "-Wall -Werror")
+AC_SUBST(CUBBY_CFLAGS)
 
 # Checks for programs.
 AC_PROG_CC
