@@ -41,7 +41,8 @@ void cut_exit(void);
                           __FILE__, \
                           __LINE__);
 
-#define ASSERT(X,msg)        __cut_assert(__FILE__,__LINE__,msg,#X,!!(X))
+#define ASSERT(X, fmt, args...) \
+    __cut_assert(!!(X), ("  %s:%d: (" #X ") " fmt), __FILE__, __LINE__, ##args)
 
 #define STATIC_ASSERT(X)  extern bool __static_ASSERT_at_line_##__LINE__##__[ (0!=(X))*2-1 ];
 
@@ -52,7 +53,7 @@ void cut_exit(void);
  */
 
 void __cut_run(char *, cut_fn, cut_fn, char *, cut_fn, char *, int);
-void __cut_assert( char *, int, char *, char *, int );
+void __cut_assert(int success, const char *fmt, ...);
 
 #endif
 

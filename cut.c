@@ -75,6 +75,13 @@ static void print_string( char *string )
   fflush( stdout );
 }
 
+static void
+vprintf_flush(const char *fmt, va_list ap)
+{
+  vprintf(fmt, ap);
+  fflush(stdout);
+}
+
 static void print_string_as_error( char *filename, int lineNumber, char *string )
 {
   printf( "  %s:%d: %s", filename, lineNumber, string );
@@ -173,21 +180,16 @@ cut_mark_point(char out, char *filename, int lineNumber )
 }
 
 
-void __cut_assert(
-                  char *filename,
-                  int   lineNumber,
-                  char *message,
-                  char *expression,
-                  BOOL  success
-                 )
+void
+__cut_assert(int success, const char *fmt, ...)
 {
+  va_list ap;
+
   if (success) return;
-  
-  print_string_as_error( filename, lineNumber, "(" );
-  print_string( expression );
-  print_string(") ");
-  print_string( message );
-  new_line();
+
+  va_start(ap, fmt);
+  vprintf_flush(fmt, ap);
+  va_end(ap);
 
   if (cur_takedown) cur_takedown();
   fflush(stdout);
