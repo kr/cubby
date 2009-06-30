@@ -23,6 +23,7 @@ templates = root.html
 shared_sources = \
   blob.c blob.h \
   bundle.c bundle.h \
+  cpkt.c cpkt.h \
   dirent.c dirent.h \
   heap.c heap.h \
   manager.c manager.h \
@@ -34,6 +35,7 @@ shared_sources = \
   util.c util.h
 
 unit_tests = \
+  check-cpkt.c \
   check-dirent.c \
   check-heap.c \
   check-manager.c \

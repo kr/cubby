@@ -8,38 +8,9 @@
 #include <arpa/inet.h>
 #include <event2/event.h>
 
+#include "cpkt.h"
 #include "udp.h"
 #include "util.h"
-
-static void
-udp_handle_ping(cpkt cp, struct sockaddr_in *src)
-{
-    // FIXME: stub
-    raw_warnx("got ping");
-}
-
-static void
-udp_handle_pong(cpkt cp, struct sockaddr_in *src)
-{
-    // FIXME: stub
-    raw_warnx("got pong");
-}
-
-static void
-udp_handle_link(cpkt cp, struct sockaddr_in *src)
-{
-    // FIXME: stub
-    raw_warnx("got link");
-}
-
-typedef void(*udp_cpkt_handle_fn)(cpkt, struct sockaddr_in *);
-
-#define KNOWN_TYPES 3
-static udp_cpkt_handle_fn types[3] = {
-    udp_handle_ping,
-    udp_handle_pong,
-    udp_handle_link,
-};
 
 static void
 udp_discard(fd)
@@ -67,15 +38,22 @@ udp_recv(int fd, short which, void *mgr)
     r = ioctl(fd, FIONREAD, &size);
     if (r == -1) return warn("ioctl");
 
-    if (size < sizeof(struct cpkt)) {
+    if (size < 1) {
         warnx("message too small (%d bytes) -- discarding", size);
         return udp_discard(fd);
     }
 
-    cp = malloc(size);
+    if (size >= (1 << 16)) {
+        warnx("message too large (%d bytes) -- discarding", size);
+        return udp_discard(fd);
+    }
+
+    cp = malloc(offsetof(struct cpkt, data) + size);
     if (!cp) return warn("malloc");
 
-    r = recvfrom(fd, cp, size, 0, &src, &src_len);
+    cp->size = size;
+
+    r = recvfrom(fd, cp->data, size, 0, &src, &src_len);
     if (r == -1) {
         if (errno != EAGAIN) warn("recvfrom");
         free(cp);
@@ -91,13 +69,8 @@ udp_recv(int fd, short which, void *mgr)
     }
 
     src_in = (struct sockaddr_in *) &src;
-
-    if (cp->type >= KNOWN_TYPES) {
-        warnx("unknown message type %d -- discarding", cp->type);
-        free(cp);
-        return;
-    }
-
-    types[cp->type](cp, src_in);
+    cp->src_addr = src_in->sin_addr.s_addr;
+    cp->src_port = src_in->sin_port;
+    cpkt_handle(cp);
     free(cp);
 }
