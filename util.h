@@ -36,11 +36,19 @@ int startswith(const char *haystack, const char *needle);
 void raw_warn(const char *fmt, ...);
 void raw_warnx(const char *fmt, ...);
 
+void raw_err(int eval, const char *fmt, ...);
+void raw_errx(int eval, const char *fmt, ...);
+
 extern char *progname;
 
 #define warn(fmt, args...) raw_warn("%s:%d in %s: " fmt, \
                                  __FILE__, __LINE__, __func__, ##args)
 #define warnx(fmt, args...) raw_warnx("%s:%d in %s: " fmt, \
                                    __FILE__, __LINE__, __func__, ##args)
+
+#define err(eval, fmt, args...) raw_err(eval, "%s:%d in %s: " fmt, \
+                                        __FILE__, __LINE__, __func__, ##args)
+#define errx(eval, fmt, args...) raw_errx(eval, "%s:%d in %s: " fmt, \
+                                          __FILE__, __LINE__, __func__, ##args)
 
 #endif /*util_h*/

@@ -55,6 +55,26 @@ raw_warnx(const char *fmt, ...)
     va_end(args);
 }
 
+void
+raw_err(int eval, const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    raw_vwarnx(strerror(errno), fmt, args);
+    va_end(args);
+    exit(eval);
+}
+
+void
+raw_errx(int eval, const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    raw_vwarnx(NULL, fmt, args);
+    va_end(args);
+    exit(eval);
+}
+
 int
 startswith(const char *haystack, const char *needle)
 {
