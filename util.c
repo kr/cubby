@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/time.h>
 
 #include "util.h"
 
@@ -83,4 +84,29 @@ startswith(const char *haystack, const char *needle)
         if (!*needle) return 1;
         if (*haystack != *needle) return 0;
     }
+}
+
+uint64_t
+int_from_timeval(struct timeval *tv)
+{
+    return ((uint64_t) tv->tv_sec) * SECOND + tv->tv_usec;
+}
+
+void
+timeval_from_int(struct timeval *tv, uint64_t t)
+{
+    tv->tv_sec = t / SECOND;
+    tv->tv_usec = t % SECOND;
+}
+
+uint64_t
+now_usec(void)
+{
+    int r;
+    struct timeval tv;
+
+    r = gettimeofday(&tv, 0);
+    if (r != 0) return warnx("gettimeofday"), -1; // can't happen
+
+    return int_from_timeval(&tv);
 }

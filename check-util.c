@@ -40,6 +40,31 @@ __CUT__util_not_abcdef_startswith_null()
 }
 
 void
+__CUT__util_int_from_timeval(void)
+{
+    struct timeval tv = { 345, 678 };
+    uint64_t exp = 345000678;
+    uint64_t got = int_from_timeval(&tv);
+
+    ASSERT(exp == got, "expected %llu, got %llu", exp, got);
+}
+
+void
+__CUT__util_timeval_from_int(void)
+{
+    uint64_t t = 345000678;
+    struct timeval exp = { 345, 678 };
+    struct timeval got = {};
+
+    timeval_from_int(&got, t);
+
+    ASSERT(exp.tv_sec == got.tv_sec, "expected %ld, got %ld",
+            exp.tv_sec, got.tv_sec);
+    ASSERT(exp.tv_usec == got.tv_usec, "expected %ld, got %ld",
+            exp.tv_usec, got.tv_usec);
+}
+
+void
 __CUT_TAKEDOWN__util()
 {
 }

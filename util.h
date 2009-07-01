@@ -19,6 +19,12 @@
 #ifndef util_h
 #define util_h
 
+#include "config.h"
+
+#if HAVE_STDINT_H
+# include <stdint.h>
+#endif /* else we get int types from config.h */
+
 #include "stdlib.h"
 
 #define CEILDIV(num, den) (1 + (((num) - 1) / (den)))
@@ -30,6 +36,9 @@
 #define ALIGN(a,t) ((t) ROUND_UP_TO_POWER_OF_TWO(((size_t) a), 3))
 
 #define min(a,b) ((a)<(b)?(a):(b))
+
+// All times are in usec.
+#define SECOND (1000000)
 
 int startswith(const char *haystack, const char *needle);
 
@@ -50,5 +59,9 @@ extern char *progname;
                                         __FILE__, __LINE__, __func__, ##args)
 #define errx(eval, fmt, args...) raw_errx(eval, "%s:%d in %s: " fmt, \
                                           __FILE__, __LINE__, __func__, ##args)
+
+uint64_t now_usec(void);
+uint64_t int_from_timeval(struct timeval *tv);
+void timeval_from_int(struct timeval *tv, uint64_t t);
 
 #endif /*util_h*/
