@@ -15,6 +15,12 @@ AC_SUBST(CUBBY_CFLAGS)
 
 # Checks for programs.
 AC_PROG_CC
+AC_PROG_CC_C99
+
+if test x"$ac_cv_prog_cc_c99" = xno
+then
+  AC_MSG_ERROR([Cubby requires a C99-capable compiler])
+fi
 
 # Checks for libraries.
 CUBBY_ENABLE_GCOV
