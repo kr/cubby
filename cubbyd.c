@@ -6,13 +6,16 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <errno.h>
+#include <arpa/inet.h>
 #include <event2/event.h>
 
 #include "net.h"
 #include "prot.h"
 #include "bundle.h"
 #include "manager.h"
+#include "peer.h"
 #include "util.h"
 
 #define DEFAULT_MEMCACHE_PORT 11211
@@ -20,12 +23,10 @@
 #define DEFAULT_UDP_PORT 20202
 
 static struct in_addr host_addr = {};
-static int memcache_port = DEFAULT_MEMCACHE_PORT,
-           http_port = DEFAULT_HTTP_PORT,
-           udp_port = DEFAULT_UDP_PORT;
+static int udp_port;
 
 static void
-usage(char *msg, char *arg)
+usage(const char *msg, const char *arg)
 {
     if (arg) {
         raw_warnx("%s: %s", msg, arg);
@@ -33,18 +34,19 @@ usage(char *msg, char *arg)
         raw_warnx("%s", msg);
     }
     fprintf(stderr, "Use: %s [OPTIONS]\n"
-            "\n"
-            "Options:\n"
-            " -b FILE  use this bundle file (may be given more than once)\n"
-            " -m PORT  memcache, listen on port PORT (default %d)\n"
-            " -p PORT  HTTP, listen on port PORT (default %d)\n"
-            " -c PORT  Control protocol, listen on UDP port PORT (default %d)\n"
-            " -i       initialize bundles (negates -I)\n"
-            " -I       don't initalize bundles (default; negates -i)\n"
-            " -v       show version information\n"
-            " -h       show this help\n",
-            progname, DEFAULT_MEMCACHE_PORT, DEFAULT_HTTP_PORT,
-            DEFAULT_UDP_PORT);
+      "\n"
+      "Options:\n"
+      " -f FILE        use this storage file (may be given more than once)\n"
+      " -m PORT        memcache, listen on port PORT (default %d)\n"
+      " -p PORT        HTTP, listen on port PORT (default %d)\n"
+      " -c PORT        control protocol, listen on UDP port PORT (default %d)\n"
+      " -b ADDR[:PORT] bootstrap by connecting to ADDR on PORT (default %d)\n"
+      " -i             initialize storage (negates -I)\n"
+      " -I             don't initalize storage (default; negates -i)\n"
+      " -v             show version information\n"
+      " -h             show this help\n",
+      progname, DEFAULT_MEMCACHE_PORT, DEFAULT_HTTP_PORT,
+      DEFAULT_UDP_PORT, DEFAULT_UDP_PORT);
     exit(arg ? 5 : 0);
 }
 
@@ -55,8 +57,9 @@ require_arg(char *opt, char *arg)
     return arg;
 }
 
+/* returns port in network order */
 static int
-parse_port(char *portstr)
+parse_port(const char *portstr)
 {
     int port;
     char *end;
@@ -67,7 +70,53 @@ parse_port(char *portstr)
     if (end[0] != 0) usage("invalid port", portstr);
     if (errno) usage("invalid port", portstr);
 
-    return port;
+    return htons(port);
+}
+
+static void
+parse_host_port(const char *arg, in_addr_t *addr, int *port, int defport)
+{
+    int r;
+    char *portstr;
+    struct in_addr addr_s;
+
+    portstr = strchr(arg, ':');
+
+    if (!portstr) {
+        r = inet_pton(AF_INET, arg, &addr_s);
+        if (!r) usage("invalid peer address", arg);
+
+        *addr = addr_s.s_addr;
+        *port = defport;
+        return;
+    }
+
+    int len = portstr - arg;
+    char addrstr[len + 1];
+
+    memcpy(addrstr, arg, len);
+    addrstr[len] = 0;
+
+    r = inet_pton(AF_INET, addrstr, &addr_s);
+    if (!r) usage("invalid peer address", addrstr);
+
+    *addr = addr_s.s_addr;
+    *port = parse_port(portstr + 1);
+}
+
+static void
+add_bootstrap_peer(manager mgr, const char *arg)
+{
+    int port, r;
+    in_addr_t addr;
+
+    parse_host_port(arg, &addr, &port, DEFAULT_UDP_PORT);
+
+    peer p = make_peer(mgr, addr, port);
+    if (!p) errx(50, "failed to allocate boostrap peer struct");
+
+    r = manager_insert_peer(mgr, p);
+    if (r == -1) errx(51, "failed to allocate space for peer list");
 }
 
 static void
@@ -79,8 +128,8 @@ opts(manager mgr, char **argv)
         if (opt[0] != '-') usage("unknown argument", opt);
         if (opt[1] == 0 || opt[2] != 0) usage("unknown option", opt);
         switch (opt[1]) {
-            case 'b':
-                add_bundle(mgr, *argv++);
+            case 'f':
+                add_bundle(mgr, require_arg("-f", *argv++));
                 break;
             case 'i':
                 initialize_bundles = 1;
@@ -89,13 +138,17 @@ opts(manager mgr, char **argv)
                 initialize_bundles = 0;
                 break;
             case 'm':
-                memcache_port = parse_port(require_arg("-m", *argv++));
+                mgr->memcache_port = parse_port(require_arg("-m", *argv++));
                 break;
             case 'c':
                 udp_port = parse_port(require_arg("-c", *argv++));
+                util_id = ntohs(udp_port);
                 break;
             case 'p':
-                http_port = parse_port(require_arg("-p", *argv++));
+                mgr->http_port = parse_port(require_arg("-p", *argv++));
+                break;
+            case 'b':
+                add_bootstrap_peer(mgr, require_arg("-b", *argv++));
                 break;
             case 'h':
                 usage(0, 0);
@@ -112,24 +165,24 @@ int
 main(int argc, char **argv)
 {
     int r;
-    struct event_base *ev_base;
     struct manager mgr = {};
 
-    host_addr.s_addr = INADDR_ANY;
     progname = *argv;
+    host_addr.s_addr = INADDR_ANY;
+    udp_port = htons(DEFAULT_UDP_PORT);
+    mgr.memcache_port = htons(DEFAULT_MEMCACHE_PORT);
+    mgr.http_port = htons(DEFAULT_HTTP_PORT);
     opts(&mgr, argv + 1);
 
     r = manager_init(&mgr);
     if (r == -1) return warnx("cannot continue"), 2;
-    if (r == -2) usage("Try the -b option", 0);
+    if (r == -2) usage("Try the -f option", 0);
 
     prot_init();
-    ev_base = event_base_new();
-    if (!ev_base) return warn("event_base_new"), 2;
-    net_init(ev_base, host_addr, memcache_port, http_port, udp_port, &mgr);
+    net_init(host_addr, udp_port, &mgr);
 
-    prot_bootstrap();
-    r = net_loop(ev_base);
+    prot_work(&mgr);
+    r = net_loop(&mgr);
     if (r == -1) return warnx("error in main driver loop"), 19;
 
     return 0;

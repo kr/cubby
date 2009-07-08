@@ -1,11 +1,16 @@
 // prot.c -- Protocol
 
+#include "net.h"
+#include "manager.h"
+
 static int my_id;
 
 void
-prot_bootstrap()
+prot_work(manager mgr)
 {
-    // stub
+    for (int i = 0; i < mgr->peers_fill; i++) {
+        peer_update(mgr->peers[i]);
+    }
 }
 
 

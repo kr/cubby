@@ -14,7 +14,6 @@ cubbyd_SOURCES = \
   http.c http.h \
   net.c net.h \
   prot.c prot.h \
-  udp.c udp.h \
   $(templates) \
   $(shared_sources)
 

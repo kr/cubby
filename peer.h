@@ -12,14 +12,20 @@
 
 typedef struct peer *peer;
 
-//#include "net.h"
+#include "manager.h"
 
 struct peer {
+    manager manager;
     uint32_t key[3];
-    struct in_addr addr;
+    in_addr_t addr;
     int cp_port; // Cubby UDP control protocol port
+
+    uint64_t last_message_to; // Local time stamp of our last sent packet.
+    uint64_t last_message_from; // Local time stamp of the last received packet.
 };
 
-peer make_peer(uint32_t *key);
+peer make_peer(manager mgr, in_addr_t addr, int cp_port);
+
+void peer_update(peer p);
 
 #endif //peer_h

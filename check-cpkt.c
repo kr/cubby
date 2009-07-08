@@ -31,7 +31,7 @@ __CUT__cpkt_void_handle_bad_ping()
     cpkt q;
 
     p = make_cpkt(50);
-    p->type = CPKT_TYPE_PING;
+    cpkt_set_type(p, CPKT_TYPE_PING);
 
     ASSERT(cpkt_base_size(p) == 12, "got %d", cpkt_base_size(p));
     ASSERT(cpkt_flex_size(p) == 38, "got %d", cpkt_flex_size(p));

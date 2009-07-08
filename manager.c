@@ -182,3 +182,68 @@ manager_init(manager m)
     return 0;
 }
 
+static void
+manager_grow_peers(manager m)
+{
+    size_t new_cap = (m->peers_cap + 1) << 1;
+    peer *new = malloc(new_cap * sizeof(peer));
+
+    if (!new) return warn("malloc");
+
+    memcpy(new, m->peers, m->peers_fill * sizeof(peer));
+    free(m->peers);
+    m->peers = new;
+    m->peers_cap = new_cap;
+}
+
+int
+manager_insert_peer(manager m, peer p)
+{
+
+    if (m->peers_fill >= m->peers_cap) manager_grow_peers(m);
+    if (m->peers_fill >= m->peers_cap) return -1;
+
+    m->peers[m->peers_fill++] = p;
+    return 0;
+}
+
+#include <stdio.h>
+
+void
+manager_out_add(manager m, cpkt c)
+{
+    c->next = 0;
+    if (!m->out_head) {
+        m->out_head = c;
+    } else {
+        m->out_tail->next = c;
+    }
+    m->out_tail = c;
+}
+
+int
+manager_out_any(manager m)
+{
+    return !!m->out_head;
+}
+
+cpkt
+manager_out_remove(manager m)
+{
+    cpkt c = m->out_head;
+
+    if (!c) return 0;
+
+    m->out_head = c->next;
+    if (!m->out_head) m->out_tail = 0;
+
+    return c;
+}
+
+void
+manager_out_pushback(manager m, cpkt c)
+{
+    if (!m->out_head) m->out_tail = c;
+    c->next = m->out_head;
+    m->out_head = c;
+}

@@ -4,6 +4,8 @@
 #define prot_h
 
 void prot_init();
-void prot_bootstrap();
+
+/* Do any work that remains to be done before waiting on the network. */
+void prot_work(manager mgr);
 
 #endif //prot_h

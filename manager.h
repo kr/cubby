@@ -13,6 +13,8 @@ typedef struct manager *manager;
 #include "region.h"
 #include "heap.h"
 #include "spht.h"
+#include "peer.h"
+#include "cpkt.h"
 
 /* This is sort of a dumping ground for all the global state. This is slightly
    better than just having static global vars scattered around the various
@@ -28,6 +30,15 @@ struct manager {
     struct heap region_pool;
 
     spht directory;
+
+    peer *peers; // All known peers
+    size_t peers_cap;
+    size_t peers_fill;
+
+    int memcache_port;
+    int http_port;
+
+    cpkt out_head, out_tail;
 };
 
 int manager_init(manager m);
@@ -45,5 +56,12 @@ void manager_delete_blob(manager m, dirent d);
 
 region manager_get_region(manager m, dirent d);
 blob manager_get_blob(manager m, dirent d);
+
+int manager_insert_peer(manager m, peer p);
+
+void manager_out_add(manager m, cpkt c);
+int manager_out_any(manager m);
+cpkt manager_out_remove(manager m);
+void manager_out_pushback(manager m, cpkt c);
 
 #endif //manager_h

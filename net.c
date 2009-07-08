@@ -9,23 +9,28 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <errno.h>
 #include <event2/event.h>
 #include <event2/http.h>
 
 #include "http.h"
-#include "udp.h"
 #include "manager.h"
 #include "net.h"
+#include "prot.h"
 #include "util.h"
 
+static struct event_base *ev_base;
+static struct event *udp_ev;
+static int udp_socket;
 static int memcache_socket = -1;
-static int udp_socket = -1;
-static struct event *udp_ev = 0;
+
 
 int
-net_loop(struct event_base *ev_base)
+net_loop(manager mgr)
 {
     int r;
+
+    net_update_ev(mgr);
 
     r = event_base_dispatch(ev_base);
     // what is the meaning of this return value???
@@ -56,7 +61,7 @@ make_udp_listen_socket(struct in_addr host_addr, int port)
     setsockopt(fd, SOL_SOCKET, SO_LINGER,   &linger, sizeof linger);
 
     saddr.sin_family = AF_INET;
-    saddr.sin_port = htons(port);
+    saddr.sin_port = port;
     saddr.sin_addr = host_addr;
     r = bind(fd, (const struct sockaddr *) &saddr, sizeof(saddr));
     if (r == -1) return warn("bind"), close(fd), -1;
@@ -89,7 +94,7 @@ make_tcp_listen_socket(struct in_addr host_addr, int port)
     setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &flags, sizeof flags);
 
     saddr.sin_family = AF_INET;
-    saddr.sin_port = htons(port);
+    saddr.sin_port = port;
     saddr.sin_addr = host_addr;
     r = bind(fd, (const struct sockaddr *) &saddr, sizeof(saddr));
     if (r == -1) return warn("bind"), close(fd), -1;
@@ -100,12 +105,127 @@ make_tcp_listen_socket(struct in_addr host_addr, int port)
     return fd;
 }
 
+static void
+net_udp_discard(int fd)
+{
+    char buf;
+
+    // Discard the packet. We don't care if there is an error -- there's
+    // nothing to do anyway.
+    recvfrom(fd, &buf, 1, 1, 0, 0);
+}
+
+static void
+net_udp_recv(int fd, short which, void *mgr)
+{
+    int size;
+    ssize_t r;
+    struct sockaddr src;
+    struct sockaddr_in *src_in;
+    socklen_t src_len = sizeof(src);
+    cpkt cp;
+
+    if (!(which & EV_READ)) return warnx("got event %d", which);
+
+    // Get the size of the next message.
+    r = ioctl(fd, FIONREAD, &size);
+    if (r == -1) return warn("ioctl");
+
+    if (size < 1) {
+        warnx("message too small (%d bytes) -- discarding", size);
+        return net_udp_discard(fd);
+    }
+
+    if (size >= (1 << 16)) {
+        warnx("message too large (%d bytes) -- discarding", size);
+        return net_udp_discard(fd);
+    }
+
+    cp = make_cpkt(size);
+    if (!cp) return warnx("make_cpkt");
+
+    r = recvfrom(fd, cp->data, size, 0, &src, &src_len);
+    if (r == -1) {
+        if (errno != EAGAIN) warn("recvfrom");
+        free(cp);
+        return;
+    }
+
+    if (r != size) warnx("read only %zd out of %d bytes", r, size);
+
+    if (src.sa_family != AF_INET) {
+        warnx("not an ipv4 address");
+        free(cp);
+        return;
+    }
+
+    src_in = (struct sockaddr_in *) &src;
+    cp->remote_addr = src_in->sin_addr.s_addr;
+    cp->remote_port = src_in->sin_port;
+    cpkt_handle(cp);
+    free(cp);
+}
+
+static void
+net_udp_send(int fd, short which, void *mgr)
+{
+    ssize_t r;
+    struct msghdr msg = { 0, /* 0... */ };
+    struct sockaddr_in dst = { 0, /* 0... */ };
+
+    while (manager_out_any(mgr)) {
+        cpkt c = manager_out_remove(mgr);
+
+        dst.sin_family = AF_INET;
+        dst.sin_port = c->remote_port;
+        dst.sin_addr.s_addr = c->remote_addr;
+
+        struct iovec iov[1] = { {0,}, /* {0,}... */ };
+
+        iov[0].iov_len = c->size;
+        iov[0].iov_base = cpkt_body(c);
+
+        msg.msg_name = &dst;
+        msg.msg_namelen = sizeof(dst);
+        msg.msg_iov = iov;
+        msg.msg_iovlen = 1;
+
+        warnx("sending %d bytes", c->size);
+        r = sendmsg(udp_socket, &msg, MSG_CONFIRM|MSG_DONTWAIT);
+
+        if (r == -1) {
+            int e = errno;
+            if (e == EAGAIN) { // There was not enough buffer space.
+                manager_out_pushback(mgr, c);
+                break;
+            }
+            cpkt_error(c, e);
+        }
+
+        free(c);
+    }
+}
+
+static void
+net_udp_handle(int fd, short which, void *mgr)
+{
+    if (which & EV_READ) net_udp_recv(fd, which, mgr);
+    if (which & EV_WRITE) net_udp_send(fd, which, mgr);
+    prot_work(mgr);
+    net_update_ev(mgr);
+}
+
 void
-net_init(struct event_base *ev_base, struct in_addr host_addr,
-         int memcache_port, int http_port, int udp_port, manager mgr)
+net_init(struct in_addr host_addr, int udp_port, manager mgr)
 {
     int r;
     struct evhttp *ev_http;
+
+    ev_base = event_base_new();
+    if (!ev_base) {
+        warn("event_base_new");
+        exit(2);
+    }
 
     udp_socket = make_udp_listen_socket(host_addr, udp_port);
     if (udp_socket == -1) {
@@ -113,33 +233,27 @@ net_init(struct event_base *ev_base, struct in_addr host_addr,
         exit(2);
     }
 
-    udp_ev = event_new(ev_base, udp_socket, EV_READ|EV_PERSIST, udp_recv, mgr);
+    udp_ev = event_new(ev_base, udp_socket, 0, net_udp_handle, mgr);
     if (!udp_ev) {
         warnx("event_new: could not make udp event");
         exit(2);
     }
 
-    r = event_add(udp_ev, 0);
-    if (r == -1) {
-        warnx("event_add: could not add udp event");
-        exit(2);
-    }
-
-    if (memcache_port) {
-        memcache_socket = make_tcp_listen_socket(host_addr, memcache_port);
+    if (mgr->memcache_port) {
+        memcache_socket = make_tcp_listen_socket(host_addr, mgr->memcache_port);
         if (memcache_socket == -1) {
-            warnx("could not open memcache port %d", memcache_port);
+            warnx("could not open memcache port %d", mgr->memcache_port);
             exit(2);
         }
     }
 
-    if (http_port) {
+    if (mgr->http_port) {
         ev_http = evhttp_new(ev_base);
-        r = evhttp_bind_socket(ev_http, "0.0.0.0", http_port);
+        r = evhttp_bind_socket(ev_http, "0.0.0.0", mgr->http_port);
         // This return value is undocumented (!), but this seems to work.
         if (r == -1) {
             warn("evhttp_bind_socket");
-            warnx("could not open port %d", http_port);
+            warnx("could not open port %d", mgr->http_port);
             exit(3);
         }
 
@@ -147,4 +261,26 @@ net_init(struct event_base *ev_base, struct in_addr host_addr,
         evhttp_set_cb(ev_http, "/", http_handle_root, mgr);
     }
 
+}
+
+void
+net_update_ev(manager mgr)
+{
+    int r;
+    struct timeval tv = { 0, /* 0... */ };
+
+    // Just in case.
+    r = event_del(udp_ev);
+    if (r == -1) return warnx("event_del");
+
+    short events = EV_READ;
+    if (manager_out_any(mgr)) events |= EV_WRITE;
+
+    event_assign(udp_ev, ev_base, udp_socket, events, net_udp_handle, mgr);
+
+    tv.tv_sec = 0;
+    tv.tv_usec = 100000; // 100ms
+
+    r = event_add(udp_ev, &tv);
+    if (r == -1) return warnx("event_add: could not add udp event");
 }

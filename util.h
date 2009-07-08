@@ -49,6 +49,7 @@ void raw_err(int eval, const char *fmt, ...);
 void raw_errx(int eval, const char *fmt, ...);
 
 extern char *progname;
+extern int util_id;
 
 #define warn(fmt, args...) raw_warn("%s:%d in %s: " fmt, \
                                  __FILE__, __LINE__, __func__, ##args)

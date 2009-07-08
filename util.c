@@ -26,11 +26,12 @@
 #include "util.h"
 
 char *progname = 0; /* defined as extern in util.h */
+int util_id; /* defined as extern in util.h */
 
 static void
 raw_vwarnx(const char *err, const char *fmt, va_list args)
 {
-    fprintf(stderr, "%s: ", progname);
+    fprintf(stderr, "%s:%d: ", progname, util_id);
     if (fmt) {
         vfprintf(stderr, fmt, args);
         if (err) fprintf(stderr, ": %s", strerror(errno));
