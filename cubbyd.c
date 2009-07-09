@@ -175,6 +175,11 @@ main(int argc, char **argv)
     if (r == -1) return warnx("cannot continue"), 2;
     if (r == -2) usage("Try the -f option", 0);
 
+    // We use random(3) just to provide jitter in a few places. It's okay if we
+    // don't have a very good seed here. We just want a reasonable chance it'll
+    // be unique in the cluster.
+    srandom(host_addr.s_addr ^ udp_port);
+
     prot_init();
     net_init(host_addr, udp_port, &mgr);
 

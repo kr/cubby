@@ -284,7 +284,7 @@ net_update_ev(manager mgr)
     event_assign(udp_ev, ev_base, udp_socket, events, net_udp_handle, mgr);
 
     tv.tv_sec = 0;
-    tv.tv_usec = 100000; // 100ms
+    tv.tv_usec = (100 + (random() % 100)) * 1000; // 100-200ms
 
     r = event_add(udp_ev, &tv);
     if (r == -1) return warnx("event_add: could not add udp event");
