@@ -27,8 +27,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
-
-#include "util.h"
+#include <errno.h>
 
 #define DO_NOT_PROCESS        "..."
 
@@ -42,8 +41,17 @@
 #define SEARCH_TOKEN_TEST_LENGTH       sizeof( SEARCH_TOKEN_TEST )-1
 #define SEARCH_TOKEN_BRINGUP_LENGTH    sizeof( SEARCH_TOKEN_BRINGUP )-1
 
-#define terr(fmt, args...) do { fprintf(stderr, "\n"); warn(fmt, ##args); exit(1); } while (0)
-#define terrx(fmt, args...) do { fprintf(stderr, "\n"); warnx(fmt, ##args); exit(1); } while (0)
+#define terr(fmt, args...) do { \
+   fprintf(stderr, "\n%s:%d: in %s: " fmt ": %s", \
+         __FILE__, __LINE__, __func__, ##args, strerror(errno)); \
+   exit(1); \
+} while (0)
+
+#define terrx(fmt, args...) do { \
+   fprintf(stderr, "\n%s:%d: in %s: " fmt, \
+         __FILE__, __LINE__, __func__, ##args); \
+   exit(1); \
+} while (0)
 
 typedef enum TestType {
    TYPE_TEST = 0,

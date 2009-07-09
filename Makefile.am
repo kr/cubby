@@ -48,7 +48,7 @@ unit_tests = \
 EXTRA_DIST = reslink
 
 check_PROGRAMS = cutgen cutcheck
-cutgen_SOURCES = cutgen.c util.c util.h
+cutgen_SOURCES = cutgen.c
 cutcheck_SOURCES = cutcheck.c cut.c cut.h $(unit_tests) $(shared_sources)
 MOSTLYCLEANFILES = cutcheck.c $(templates:.html=.o)
 
