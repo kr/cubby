@@ -29,5 +29,6 @@ peer make_peer(manager mgr, in_addr_t addr, int cp_port);
 void peer_update(peer p);
 void peer_touch(peer p);
 void peer_send_pong(peer p);
+int peer_active(peer p);
 
 #endif //peer_h

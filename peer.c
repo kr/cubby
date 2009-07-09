@@ -6,8 +6,11 @@
 #include "peer.h"
 #include "cpkt.h"
 #include "manager.h"
-#include "key.h"
 #include "util.h"
+
+// How long (usec) to wait after the last message was received before
+// considering a peer to be inactive.
+#define ACTIVE_INTERVAL (20 * SECOND)
 
 // How long (usec) to wait after the last message was received before sending a
 // ping.
@@ -48,6 +51,15 @@ peer_needs_ping(peer p)
     return delta_from > PING_INTERVAL && delta_to > REPING_INTERVAL;
 }
 
+int
+peer_active(peer p)
+{
+    int64_t now = now_usec();
+    int64_t delta_from = now - p->last_message_from;
+
+    return delta_from > ACTIVE_INTERVAL;
+}
+
 static void
 peer_send(peer p, cpkt c)
 {
@@ -78,25 +90,12 @@ void
 peer_send_pong(peer p)
 {
     manager m = p->manager;
-    peer closest[PONG_COUNT + 1];
+    peer closest[PONG_COUNT];
 
     if (!p) return;
 
-    int j = 0;
-    for (int i = 0; i < m->peers_fill; i++) {
-        j = min(i, PONG_COUNT);
-        closest[j] = m->peers[i];
-        for (; j; j--) {
-            uint32_t *a = closest[j - 1]->key;
-            uint32_t *b = closest[j]->key;
-            if (key_distance_cmp(m->key, a, b) < 0) break;
-            peer t = closest[j];
-            closest[j] = closest[j - 1];
-            closest[j - 1] = t;
-        }
-    }
-
-    cpkt pkt = make_cpkt_pong(0, 0, closest, j);
+    int n = manager_find_closest_active_peers(m, m->key, PONG_COUNT, closest);
+    cpkt pkt = make_cpkt_pong(0, 0, closest, n);
     if (!pkt) return warnx("make_cpkt_ping");
 
     peer_send(p, pkt);
