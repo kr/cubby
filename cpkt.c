@@ -5,6 +5,7 @@
 #include <errno.h>
 
 #include "cpkt.h"
+#include "peer.h"
 #include "util.h"
 
 typedef struct cpkt_ping {
@@ -17,12 +18,21 @@ typedef struct cpkt_ping {
     uint16_t http_port;
 } *cpkt_ping;
 
+typedef struct cpkt_peer_desc {
+    uint32_t addr;
+    uint16_t port;
+    uint8_t pad0; // reserved
+    uint8_t pad1; // reserved
+} *cpkt_peer_desc;
+
 typedef struct cpkt_pong {
     CPKT_COMMON;
 
     // Bytes from the network
     uint8_t type;
     uint8_t pad[7];
+
+    struct cpkt_peer_desc peers[];
 } *cpkt_pong;
 
 typedef struct cpkt_link {
@@ -33,7 +43,11 @@ typedef struct cpkt_link {
     uint8_t pad[7];
 } *cpkt_link;
 
-typedef void(*cpkt_handle_fn)(cpkt);
+typedef void(*cpkt_handle_fn)(cpkt, peer);
+
+static void cpkt_ping_handle(cpkt cp, peer p);
+static void cpkt_pong_handle(cpkt cp, peer p);
+static void cpkt_link_handle(cpkt cp, peer p);
 
 struct cpkt_type {
     // The number of bytes in the smallest possible packet of this type.
@@ -125,39 +139,45 @@ cpkt_check_size(cpkt p)
 }
 
 // Assumes correct type.
-void
-cpkt_ping_handle(cpkt cp)
+static void
+cpkt_ping_handle(cpkt cp, peer p)
 {
-    cpkt_ping p = (cpkt_ping) cpkt_check_size(cp);
+    cpkt_ping cp_ping = (cpkt_ping) cpkt_check_size(cp);
 
-    if (!p) return warnx("cp %p is not a ping packet", cp);
+    if (!cp_ping) return warnx("cp %p is not a ping packet", cp);
 
-    // FIXME: stub
-    raw_warnx("got ping");
+    peer_send_pong(p);
 }
 
-void
-cpkt_pong_handle(cpkt cp)
+static void
+cpkt_pong_handle(cpkt cp, peer p)
 {
     // FIXME: stub
     raw_warnx("got pong");
 }
 
-void
-cpkt_link_handle(cpkt cp)
+static void
+cpkt_link_handle(cpkt cp, peer p)
 {
     // FIXME: stub
     raw_warnx("got link");
 }
 
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
 void
-cpkt_handle(cpkt cp)
+cpkt_handle(cpkt cp, peer p)
 {
     if (cpkt_get_type(cp) >= KNOWN_TYPES) {
         return warnx("ignoring message: unknown type %x", cpkt_get_type(cp));
     }
 
-    types[cpkt_get_type(cp)].fn(cp);
+    struct in_addr a;
+    a.s_addr = p->addr;
+    warnx("handling packet for peer %s:%d\n", inet_ntoa(a), ntohs(p->cp_port));
+    types[cpkt_get_type(cp)].fn(cp, p);
 }
 
 cpkt
@@ -186,11 +206,24 @@ make_cpkt_ping(in_addr_t addr, int cp_port, int memcache_port, int http_port)
 
     cpkt_set_type((cpkt) cp, CPKT_TYPE_CODE_PING);
 
-    cp->remote_addr = addr;
-    cp->remote_port = cp_port;
-
     cp->memcache_port = memcache_port;
     cp->http_port = http_port;
+    return (cpkt) cp;
+}
+
+cpkt
+make_cpkt_pong(in_addr_t addr, uint16_t port, peer *peers, int len)
+{
+    cpkt_pong cp = (cpkt_pong) make_cpkt(CPKT_BASE_SIZE(pong) +
+            sizeof(struct cpkt_peer_desc) * len);
+    if (!cp) return warnx("make_cpkt"), (cpkt) 0;
+
+    cpkt_set_type((cpkt) cp, CPKT_TYPE_CODE_PONG);
+
+    for (int i = 0; i < len; i++) {
+        cp->peers[i].addr = peers[i]->addr;
+        cp->peers[i].port = peers[i]->cp_port;
+    }
     return (cpkt) cp;
 }
 

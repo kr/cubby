@@ -25,6 +25,7 @@ shared_sources = \
   cpkt.c cpkt.h \
   dirent.c dirent.h \
   heap.c heap.h \
+  key.c key.h \
   manager.c manager.h \
   peer.c peer.h \
   region.c region.h \
@@ -37,6 +38,7 @@ unit_tests = \
   check-cpkt.c \
   check-dirent.c \
   check-heap.c \
+  check-key.c \
   check-manager.c \
   check-peer.c \
   check-region.c \

@@ -162,7 +162,9 @@ net_udp_recv(int fd, short which, void *mgr)
     src_in = (struct sockaddr_in *) &src;
     cp->remote_addr = src_in->sin_addr.s_addr;
     cp->remote_port = src_in->sin_port;
-    cpkt_handle(cp);
+    peer p = manager_get_peer(mgr, cp->remote_addr, cp->remote_port);
+    peer_touch(p);
+    cpkt_handle(cp, p);
     free(cp);
 }
 

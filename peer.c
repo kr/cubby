@@ -6,6 +6,7 @@
 #include "peer.h"
 #include "cpkt.h"
 #include "manager.h"
+#include "key.h"
 #include "util.h"
 
 // How long (usec) to wait after the last message was received before sending a
@@ -15,6 +16,8 @@
 // How long (usec) to wait after the last ping was sent before sending another
 // ping.
 #define REPING_INTERVAL (1 * SECOND)
+
+#define PONG_COUNT 45
 
 peer
 make_peer(manager mgr, in_addr_t addr, int cp_port)
@@ -46,15 +49,57 @@ peer_needs_ping(peer p)
 }
 
 static void
+peer_send(peer p, cpkt c)
+{
+    p->last_message_to = now_usec();
+    c->remote_addr = p->addr;
+    c->remote_port = p->cp_port;
+    manager_out_add(p->manager, c);
+}
+
+void
+peer_touch(peer p)
+{
+    if (!p) return;
+    p->last_message_from = now_usec();
+}
+
+static void
 peer_send_ping(peer pr)
 {
     cpkt pkt = make_cpkt_ping(pr->addr, pr->cp_port,
             pr->manager->memcache_port, pr->manager->http_port);
     if (!pkt) return warnx("make_cpkt_ping");
 
-    pr->last_message_to = now_usec();
+    peer_send(pr, pkt);
+}
 
-    manager_out_add(pr->manager, pkt);
+void
+peer_send_pong(peer p)
+{
+    manager m = p->manager;
+    peer closest[PONG_COUNT + 1];
+
+    if (!p) return;
+
+    int j = 0;
+    for (int i = 0; i < m->peers_fill; i++) {
+        j = min(i, PONG_COUNT);
+        closest[j] = m->peers[i];
+        for (; j; j--) {
+            uint32_t *a = closest[j - 1]->key;
+            uint32_t *b = closest[j]->key;
+            if (key_distance_cmp(m->key, a, b) < 0) break;
+            peer t = closest[j];
+            closest[j] = closest[j - 1];
+            closest[j - 1] = t;
+        }
+    }
+
+    cpkt pkt = make_cpkt_pong(0, 0, closest, j);
+    if (!pkt) return warnx("make_cpkt_ping");
+
+    peer_send(p, pkt);
 }
 
 void
@@ -62,4 +107,3 @@ peer_update(peer p)
 {
     if (peer_needs_ping(p)) peer_send_ping(p);
 }
-

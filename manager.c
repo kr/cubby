@@ -247,3 +247,21 @@ manager_out_pushback(manager m, cpkt c)
     c->next = m->out_head;
     m->out_head = c;
 }
+
+/* If the peer does not exist, it will be created. */
+peer
+manager_get_peer(manager m, in_addr_t addr, uint16_t port)
+{
+    for (int i = 0; i < m->peers_fill; i++) {
+        peer p = m->peers[i];
+        if (p->addr == addr && p->cp_port == port) return p;
+    }
+
+    peer p = make_peer(m, addr, port);
+    if (!p) return warnx("make_peer"), (peer) 0;
+
+    int r = manager_insert_peer(m, p);
+    if (r == -1) return warnx("manager_insert_peer"), (peer) 0;
+
+    return p;
+}

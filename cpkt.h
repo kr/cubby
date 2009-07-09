@@ -12,6 +12,8 @@
 
 typedef struct cpkt *cpkt;
 
+#include "peer.h"
+
 struct cpkt {
 #define CPKT_COMMON \
     cpkt next; \
@@ -29,6 +31,7 @@ struct cpkt {
 cpkt make_cpkt(uint16_t size);
 cpkt make_cpkt_ping(in_addr_t addr, int cp_port, int memcache_port,
         int http_port);
+cpkt make_cpkt_pong(in_addr_t addr, uint16_t port, peer *peers, int len);
 
 cpkt cpkt_check_size(cpkt p);
 int cpkt_base_size(cpkt p);
@@ -37,11 +40,7 @@ int cpkt_get_type(cpkt c);
 void cpkt_set_type(cpkt c, uint8_t t);
 uint8_t * cpkt_body(cpkt c);
 
-void cpkt_ping_handle(cpkt cp);
-void cpkt_pong_handle(cpkt cp);
-void cpkt_link_handle(cpkt cp);
-
-void cpkt_handle(cpkt cp);
+void cpkt_handle(cpkt cp, peer p);
 void cpkt_error(cpkt c, int err);
 
 #endif //cpkt_h

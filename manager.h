@@ -66,4 +66,6 @@ int manager_out_any(manager m);
 cpkt manager_out_remove(manager m);
 void manager_out_pushback(manager m, cpkt c);
 
+peer manager_get_peer(manager m, in_addr_t addr, uint16_t port);
+
 #endif //manager_h

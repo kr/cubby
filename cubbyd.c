@@ -107,16 +107,13 @@ parse_host_port(const char *arg, in_addr_t *addr, int *port, int defport)
 static void
 add_bootstrap_peer(manager mgr, const char *arg)
 {
-    int port, r;
+    int port;
     in_addr_t addr;
 
     parse_host_port(arg, &addr, &port, DEFAULT_UDP_PORT);
 
-    peer p = make_peer(mgr, addr, port);
-    if (!p) errx(50, "failed to allocate boostrap peer struct");
-
-    r = manager_insert_peer(mgr, p);
-    if (r == -1) errx(51, "failed to allocate space for peer list");
+    peer p = manager_get_peer(mgr, addr, port);
+    if (!p) errx(50, "failed to allocate boostrap peer");
 }
 
 static void

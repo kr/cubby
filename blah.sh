@@ -4,8 +4,8 @@ set -e
 set -x
 
 cleanup() {
-    kill $pid1
-    kill $pid2
+    kill $pid1 || true
+    kill $pid2 || true
 }
 
 trap cleanup EXIT
