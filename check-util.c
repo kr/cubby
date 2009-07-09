@@ -1,5 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include "util.h"
 #include "cut.h"
@@ -62,6 +65,19 @@ __CUT__util_timeval_from_int(void)
             exp.tv_sec, got.tv_sec);
     ASSERT(exp.tv_usec == got.tv_usec, "expected %ld, got %ld",
             exp.tv_usec, got.tv_usec);
+}
+
+void
+__CUT__util_compute_key(void)
+{
+    uint32_t got[3] = {};
+    uint32_t exp[3] = { 0x81fb346d, 0x17368bd9, 0xd5dd941e };
+
+    key_for_peer(got, inet_addr("127.0.0.1"), htons(20202));
+
+    ASSERT(got[0] == exp[0], "expected 0x%x, got 0x%x", exp[0], got[0]);
+    ASSERT(got[1] == exp[1], "expected 0x%x, got 0x%x", exp[1], got[1]);
+    ASSERT(got[2] == exp[2], "expected 0x%x, got 0x%x", exp[2], got[2]);
 }
 
 void

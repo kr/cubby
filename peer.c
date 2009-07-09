@@ -29,6 +29,9 @@ make_peer(manager mgr, in_addr_t addr, int cp_port)
     p->addr = addr;
     p->cp_port = cp_port;
 
+    // Compute key.
+    key_for_peer(p->key, addr, cp_port);
+
     return p;
 }
 

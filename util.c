@@ -22,7 +22,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/time.h>
+#include <netinet/in.h>
 
+#include "sha512.h"
 #include "util.h"
 
 char *progname = 0; /* defined as extern in util.h */
@@ -110,4 +112,16 @@ now_usec(void)
     if (r != 0) return warnx("gettimeofday"), -1; // can't happen
 
     return int_from_timeval(&tv);
+}
+
+/* Expects ADDR and PORT to be in network order (big-endian). */
+/* Fills in 12 bytes starting at KEY. */
+void
+key_for_peer(uint32_t *key, in_addr_t addr, uint16_t port)
+{
+    struct __attribute__ ((__packed__)) {
+        uint32_t addr; // always big-endian
+        uint16_t port; // always big-endian
+    } buf = { addr, port };
+    sha512((char *) &buf, sizeof(buf), key, sizeof(uint32_t) * 3);
 }

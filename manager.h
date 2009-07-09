@@ -20,6 +20,8 @@ typedef struct manager *manager;
    better than just having static global vars scattered around the various
    modules. */
 struct manager {
+    uint32_t key[3]; // Our own id
+
     struct bundle *all_bundles;
     int nbundles;
 

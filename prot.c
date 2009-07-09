@@ -3,8 +3,6 @@
 #include "net.h"
 #include "manager.h"
 
-static int my_id;
-
 void
 prot_work(manager mgr)
 {
@@ -17,5 +15,4 @@ prot_work(manager mgr)
 void
 prot_init()
 {
-    my_id = 1;
 }

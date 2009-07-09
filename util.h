@@ -25,7 +25,8 @@
 # include <stdint.h>
 #endif /* else we get int types from config.h */
 
-#include "stdlib.h"
+#include <stdlib.h>
+#include <netinet/in.h>
 
 #define CEILDIV(num, den) (1 + (((num) - 1) / (den)))
 
@@ -64,5 +65,7 @@ extern int util_id;
 uint64_t now_usec(void);
 uint64_t int_from_timeval(struct timeval *tv);
 void timeval_from_int(struct timeval *tv, uint64_t t);
+
+void key_for_peer(uint32_t key[3], in_addr_t addr, uint16_t port);
 
 #endif /*util_h*/

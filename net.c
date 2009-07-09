@@ -221,6 +221,9 @@ net_init(struct in_addr host_addr, int udp_port, manager mgr)
     int r;
     struct evhttp *ev_http;
 
+    // First compute our own key.
+    key_for_peer(mgr->key, host_addr.s_addr, udp_port);
+
     ev_base = event_base_new();
     if (!ev_base) {
         warn("event_base_new");
