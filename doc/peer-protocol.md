@@ -16,11 +16,11 @@ PUT key len w rw bw data:
 
     pick bw - 1 servers and forward the request
 
+    find the closest N good nodes to key and send them dirent updates
+
     reply HAVE key (ok)
 
     pick w - bw - 1 servers (spanning rw - 1 racks) and forward the request
-
-    find the closest N good nodes to key and send them dirent updates
 
 GET key (maybe with offset and len):
 

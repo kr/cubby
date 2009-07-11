@@ -41,6 +41,8 @@ typedef struct cpkt_link {
     // Bytes from the network
     uint8_t type;
     uint8_t pad[7];
+
+    uint32_t key[3];
 } *cpkt_link;
 
 typedef void(*cpkt_handle_fn)(cpkt, peer);
@@ -50,6 +52,8 @@ static void cpkt_pong_handle(cpkt cp, peer p);
 static void cpkt_link_handle(cpkt cp, peer p);
 
 struct cpkt_type {
+    const char *name;
+
     // The number of bytes in the smallest possible packet of this type.
     uint16_t base;
 
@@ -65,7 +69,7 @@ struct cpkt_type {
     (sizeof(struct cpkt_##t) - sizeof(struct cpkt))
 
 #define CPKT_TYPE(t, i) { \
-    CPKT_BASE_SIZE(t), i, cpkt_##t##_handle \
+    #t, CPKT_BASE_SIZE(t), i, cpkt_##t##_handle \
 }
 
 enum cpkt_type_codes {
@@ -117,6 +121,12 @@ cpkt_body(cpkt c)
 {
     if (!c) return 0;
     return c->data;
+}
+
+const char *
+cpkt_type_name(cpkt c)
+{
+    return types[cpkt_get_type(c)].name;
 }
 
 inline cpkt
@@ -225,6 +235,19 @@ make_cpkt_pong(in_addr_t addr, uint16_t port, peer *peers, int len)
         cp->peers[i].port = peers[i]->cp_port;
     }
     return (cpkt) cp;
+}
+
+cpkt
+make_cpkt_link(uint32_t *key)
+{
+    cpkt_link c = (cpkt_link) make_cpkt(CPKT_BASE_SIZE(link));
+    if (!c) return warnx("make_cpkt"), (cpkt) 0;
+
+    cpkt_set_type((cpkt) c, CPKT_TYPE_CODE_LINK);
+    c->key[0] = key[0];
+    c->key[1] = key[1];
+    c->key[2] = key[2];
+    return (cpkt) c;
 }
 
 void

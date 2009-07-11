@@ -11,6 +11,7 @@
 typedef struct manager *manager;
 
 #include "region.h"
+#include "arr.h"
 #include "heap.h"
 #include "spht.h"
 #include "peer.h"
@@ -41,6 +42,8 @@ struct manager {
     int http_port;
 
     cpkt out_head, out_tail;
+
+    struct arr outstanding_links;
 };
 
 int manager_init(manager m);

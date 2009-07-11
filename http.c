@@ -10,6 +10,7 @@
 #include "http.h"
 #include "blob.h"
 #include "region.h"
+#include "prot.h"
 #include "dirent.h"
 #include "manager.h"
 #include "sha512.h"
@@ -75,6 +76,17 @@ http_handle_blob_get(struct evhttp_request *req, manager mgr)
     evbuffer_add_reference(out, &bl->data, bl->size, 0, 0);
     evhttp_send_reply(req, HTTP_OK, "OK", out);
     evbuffer_free(out);
+}
+
+static void
+http_put_done(manager m, uint32_t *key, int error, void *req)
+{
+    if (error == 0) {
+        // Oh snap! We just got a file!
+        evhttp_send_reply(req, HTTP_OK, "Got it!", 0);
+    } else {
+        evhttp_send_reply(req, HTTP_INTERNAL_ERROR, "could not send links", 0);
+    }
 }
 
 static void
@@ -145,8 +157,7 @@ http_handle_blob_put(struct evhttp_request *req, manager mgr)
 
     // TODO msync
 
-    // Oh snap! We just got a file!
-    evhttp_send_reply(req, HTTP_OK, "Got it!", 0);
+    prot_send_links(mgr, k, http_put_done, req);
 }
 
 void

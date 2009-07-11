@@ -39,7 +39,9 @@
 #define min(a,b) ((a)<(b)?(a):(b))
 
 // All times are in usec.
-#define SECOND (1000000)
+#define USEC (1)
+#define MSEC (1000 * USEC)
+#define SECOND (1000 * MSEC)
 
 int startswith(const char *haystack, const char *needle);
 

@@ -32,11 +32,13 @@ cpkt make_cpkt(uint16_t size);
 cpkt make_cpkt_ping(in_addr_t addr, int cp_port, int memcache_port,
         int http_port);
 cpkt make_cpkt_pong(in_addr_t addr, uint16_t port, peer *peers, int len);
+cpkt make_cpkt_link(uint32_t *key);
 
 cpkt cpkt_check_size(cpkt p);
 int cpkt_base_size(cpkt p);
 int cpkt_flex_size(cpkt p);
 int cpkt_get_type(cpkt c);
+const char *cpkt_type_name(cpkt c);
 void cpkt_set_type(cpkt c, uint8_t t);
 uint8_t * cpkt_body(cpkt c);
 

@@ -13,13 +13,13 @@ cubbyd_SOURCES = \
   cubbyd.c \
   http.c http.h \
   net.c net.h \
-  prot.c prot.h \
   $(templates) \
   $(shared_sources)
 
 templates = root.html
 
 shared_sources = \
+  arr.c arr.h \
   blob.c blob.h \
   bundle.c bundle.h \
   cpkt.c cpkt.h \
@@ -28,6 +28,7 @@ shared_sources = \
   key.c key.h \
   manager.c manager.h \
   peer.c peer.h \
+  prot.c prot.h \
   region.c region.h \
   sha512.c sha512.h \
   sparr.c sparr.h \
@@ -35,6 +36,7 @@ shared_sources = \
   util.c util.h
 
 unit_tests = \
+  check-arr.c \
   check-cpkt.c \
   check-dirent.c \
   check-heap.c \

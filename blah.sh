@@ -10,7 +10,7 @@ cleanup() {
 
 trap cleanup EXIT
 
-if false
+if test "$1" = clean
 then
     rm -f /tmp/x.bun /tmp/y.bun
     dd if=/dev/zero of=/tmp/x.bun bs=1k count=128k

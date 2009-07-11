@@ -2,6 +2,7 @@
 
 #include "bundle.h"
 #include "manager.h"
+#include "prot.h"
 #include "key.h"
 #include "util.h"
 
@@ -160,6 +161,8 @@ manager_init(manager m)
     // Initialize the heap if necessary
     heap_init(&m->region_pool, (cmp_fn) region_space_cmp);
 
+    arr_init(&m->outstanding_links, 0, prot_outstanding_link_onremove);
+
     m->directory = make_spht(0);
     if (!m->directory) return warnx("making directory"), -1;
 
@@ -272,10 +275,11 @@ manager_find_closest_active_peers(manager m, uint32_t *key, int n, peer *out)
 {
     peer ps[n + 1];
 
-    int j = 0;
+    int found = 0;
     for (int i = 0; i < m->peers_fill; i++) {
         if (!peer_active(m->peers[i])) continue;
-        j = min(i, n);
+        int j = min(found, n);
+        found++;
         ps[j] = m->peers[i];
         for (; j; j--) {
             if (key_distance_cmp(m->key, ps[j - 1]->key, ps[j]->key) < 0) break;
@@ -286,5 +290,5 @@ manager_find_closest_active_peers(manager m, uint32_t *key, int n, peer *out)
     }
 
     for (int i = 0; i < n; i++) out[i] = ps[i];
-    return j;
+    return found;
 }

@@ -57,7 +57,7 @@ peer_active(peer p)
     int64_t now = now_usec();
     int64_t delta_from = now - p->last_message_from;
 
-    return delta_from > ACTIVE_INTERVAL;
+    return delta_from < ACTIVE_INTERVAL;
 }
 
 static void
@@ -99,6 +99,15 @@ peer_send_pong(peer p)
     if (!pkt) return warnx("make_cpkt_ping");
 
     peer_send(p, pkt);
+}
+
+void
+peer_send_link(peer p, uint32_t *key)
+{
+    cpkt c = make_cpkt_link(key);
+    if (!c) return warnx("make_cpkt_link");
+
+    peer_send(p, c);
 }
 
 void
