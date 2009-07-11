@@ -32,7 +32,6 @@ prot_outstanding_link_update(arr a, void *item, size_t index)
     link_progress prog = item;
 
     if (!prog->peers[0].peer && !prog->peers[0].peer) {
-        warnx("hooray, all linked up");
         prog->cb(prog->manager, prog->key, 0, prog->data);
         return 0; // remove it from the list
     }
@@ -47,15 +46,12 @@ prot_outstanding_link_update(arr a, void *item, size_t index)
             if (prog->peers[i].first_at == 0) { // Send the first request
                 prog->peers[i].first_at = now;
                 prog->peers[i].last_at = now;
-                warnx("sending first link to peer on %d", ntohs(p->cp_port));
                 peer_send_link(p, prog->key);
             } else if (delta_first > ABANDON_LINK_INTERVAL) {
-                warnx("giving up");
                 prog->cb(prog->manager, prog->key, 1, prog->data);
                 return 0; // remove it from the list
             } else if (delta_last > RETRY_LINK_INTERVAL) {
                 prog->peers[i].last_at = now;
-                warnx("sending link to peer on %d", ntohs(p->cp_port));
                 peer_send_link(p, prog->key);
             }
             // else do nothing
@@ -98,7 +94,6 @@ prot_send_links(manager m, uint32_t *k, prot_send_link_fn cb, void *data)
 
     peer closest[DIRENT_W];
     int n = manager_find_closest_active_peers(m, k, DIRENT_W, closest);
-    warnx("sending LINK to %d peers", n);
     for (int i = 0; i < n; i++) {
         prog->peers[i].peer = closest[i];
     }

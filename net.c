@@ -192,7 +192,6 @@ net_udp_send(int fd, short which, void *mgr)
         msg.msg_iov = iov;
         msg.msg_iovlen = 1;
 
-        warnx("sending %s (%d bytes)", cpkt_type_name(c), c->size);
         r = sendmsg(udp_socket, &msg, MSG_CONFIRM|MSG_DONTWAIT);
 
         if (r == -1) {

@@ -173,10 +173,6 @@ cpkt_link_handle(cpkt cp, peer p)
     raw_warnx("got link");
 }
 
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
 void
 cpkt_handle(cpkt cp, peer p)
 {
@@ -184,9 +180,6 @@ cpkt_handle(cpkt cp, peer p)
         return warnx("ignoring message: unknown type %x", cpkt_get_type(cp));
     }
 
-    struct in_addr a;
-    a.s_addr = p->addr;
-    warnx("handling packet for peer %s:%d\n", inet_ntoa(a), ntohs(p->cp_port));
     types[cpkt_get_type(cp)].fn(cp, p);
 }
 
