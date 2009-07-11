@@ -73,4 +73,6 @@ peer manager_get_peer(manager m, in_addr_t addr, uint16_t port);
 int manager_find_closest_active_peers(manager m, uint32_t *key, int n,
         peer *out);
 
+int manager_add_link(manager m, uint32_t *key, peer p);
+
 #endif //manager_h

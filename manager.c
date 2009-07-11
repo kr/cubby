@@ -294,3 +294,28 @@ manager_find_closest_active_peers(manager m, uint32_t *key, int n, peer *out)
     for (int i = 0; i < n; i++) out[i] = ps[i];
     return found;
 }
+
+int
+manager_add_link(manager m, uint32_t *key, peer p)
+{
+    int r;
+    dirent nde, de = spht_get(m->directory, key);
+
+    if (de) {
+        if (dirent_has_remote(de, p->addr, p->cp_port)) return 0;
+        nde = copy_dirent(de, de->len + 1);
+    } else {
+        nde = make_dirent(key, 1);
+    }
+    if (!nde) return -1;
+
+    r = dirent_add_remote(nde, p->addr, p->cp_port);
+    if (r == -1) return free(nde), -1; // can't happen
+
+    r = spht_set(m->directory, nde);
+    if (r == -1) return free(nde), -1;
+
+    free(de);
+
+    return 0;
+}

@@ -167,10 +167,15 @@ cpkt_pong_handle(cpkt cp, peer p)
 }
 
 static void
-cpkt_link_handle(cpkt cp, peer p)
+cpkt_link_handle(cpkt generic, peer p)
 {
-    // FIXME: stub
-    raw_warnx("got link");
+    cpkt_link c = (cpkt_link) cpkt_check_size(generic);
+
+    int r = manager_add_link(p->manager, c->key, p);
+    if (r == -1) return; // just drop it -- the peer can retry if they want
+
+    warnx("TODO send LINKED");
+    // send_linked();
 }
 
 void

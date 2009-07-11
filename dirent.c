@@ -27,6 +27,27 @@ make_dirent(uint32_t *key, uint8_t len)
     return d;
 }
 
+dirent
+copy_dirent(dirent d, uint8_t new_len)
+{
+    dirent nd;
+
+    nd = malloc(sizeof(struct dirent) + sizeof(struct rdesc) * new_len);
+    if (!nd) return warn("malloc"), (dirent) 0;
+
+    nd->len = new_len;
+    nd->key[0] = d->key[0];
+    nd->key[1] = d->key[1];
+    nd->key[2] = d->key[2];
+    int common = min(d->len, new_len);
+    for (int i = 0; i < common; i++) {
+        nd->rdescs[i] = d->rdescs[i];
+    }
+    memset(nd->rdescs + common, 0, sizeof(struct rdesc) * (new_len - common));
+
+    return nd;
+}
+
 int
 dirent_matches(dirent d, uint32_t *key)
 {
@@ -56,5 +77,31 @@ dirent_get_rdesc_local(dirent d)
     if (i >= d->len) return 0;
 
     return (rdesc_local) &d->rdescs[i];
+}
+
+int
+dirent_has_remote(dirent d, in_addr_t addr, uint16_t port)
+{
+    for (int i = 0; i < d->len; i++) {
+        rdesc rd = d->rdescs + i;
+        if (rd->flags & RDESC_REMOTE &&
+                rd->b == addr && rd->a == port) return 1;
+    }
+    return 0;
+}
+
+int
+dirent_add_remote(dirent d, in_addr_t addr, uint16_t port)
+{
+    for (int i = 0; i < d->len; i++) {
+        rdesc rd = d->rdescs + i;
+        if (!rd->flags) {
+            rd->flags |= RDESC_REMOTE;
+            rd->a = port;
+            rd->b = addr;
+            return 0;
+        }
+    }
+    return -1;
 }
 
