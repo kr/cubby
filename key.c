@@ -22,3 +22,15 @@ key_distance_cmp(uint32_t *x, uint32_t *a, uint32_t *b)
     return 0;
 }
 
+void
+key_fmt(char *out, uint32_t *key)
+{
+    uint8_t *k = (uint8_t *) key;
+
+    for (int i = 0; i < 12; i++) {
+        if (i && !(i % 4)) *out++ = '.';
+        *out++ = "0123456789abcdef"[k[i] >> 4];
+        *out++ = "0123456789abcdef"[k[i] & 15];
+    }
+    *out = 0;
+}

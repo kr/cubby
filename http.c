@@ -14,6 +14,7 @@
 #include "dirent.h"
 #include "manager.h"
 #include "sha512.h"
+#include "key.h"
 #include "util.h"
 
 // For some reason, libevent defines some of these and not others.
@@ -43,7 +44,9 @@ http_handle_blob_get(struct evhttp_request *req, manager mgr)
     name = duri + 1; // skip the leading slash
 
     sha512(name, strlen(name), k, 12);
-    raw_warnx("k = %8x.%8x.%8x", k[2], k[1], k[0]);
+    char fkey[27];
+    key_fmt(fkey, k);
+    raw_warnx("k = %s", fkey);
     free(duri);
     duri = name = 0;
 
@@ -108,7 +111,9 @@ http_handle_blob_put(struct evhttp_request *req, manager mgr)
 
     raw_warnx("name (%d bytes) is %s", strlen(name), name);
     sha512(name, strlen(name), k, 12);
-    raw_warnx("k = %8x.%8x.%8x", k[2], k[1], k[0]);
+    char fkey[27];
+    key_fmt(fkey, k);
+    raw_warnx("k = %s", fkey);
     free(duri);
     duri = name = 0;
 

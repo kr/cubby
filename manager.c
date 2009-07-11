@@ -140,7 +140,9 @@ manager_read_regions(manager mgr, uint16_t count)
                 rdesc->reg = reg->id;
                 rdesc->off = region_blob_offset(reg, bl);
                 spht_set(mgr->directory, de);
-                raw_warnx("read one k = %8x.%8x.%8x", bl->key[2], bl->key[1], bl->key[0]);
+                char fkey[27];
+                key_fmt(fkey, bl->key);
+                raw_warnx("read one k = %s", fkey);
             }
             reg->free = (char *) bl;
             if (!region_close_to_full(reg)) {

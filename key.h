@@ -13,4 +13,6 @@
    otherwise, return 0 */
 int key_distance_cmp(uint32_t *x, uint32_t *a, uint32_t *b);
 
+void key_fmt(char *out, uint32_t *key);
+
 #endif //key_h
