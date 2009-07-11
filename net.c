@@ -254,7 +254,9 @@ net_init(struct in_addr host_addr, int udp_port, manager mgr)
 
     if (mgr->http_port) {
         ev_http = evhttp_new(ev_base);
-        r = evhttp_bind_socket(ev_http, "0.0.0.0", mgr->http_port);
+
+        // evhttp_bind_socket expects its PORT param in host byte order. Sigh.
+        r = evhttp_bind_socket(ev_http, "0.0.0.0", ntohs(mgr->http_port));
         // This return value is undocumented (!), but this seems to work.
         if (r == -1) {
             warn("evhttp_bind_socket");
