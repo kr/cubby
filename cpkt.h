@@ -33,6 +33,7 @@ cpkt make_cpkt_ping(in_addr_t addr, int cp_port, int memcache_port,
         int http_port);
 cpkt make_cpkt_pong(in_addr_t addr, uint16_t port, peer *peers, int len);
 cpkt make_cpkt_link(uint32_t *key);
+cpkt make_cpkt_linked(uint32_t *key);
 
 cpkt cpkt_check_size(cpkt p);
 int cpkt_base_size(cpkt p);

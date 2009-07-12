@@ -111,6 +111,15 @@ peer_send_link(peer p, uint32_t *key)
 }
 
 void
+peer_send_linked(peer p, uint32_t *key)
+{
+    cpkt c = make_cpkt_linked(key);
+    if (!c) return warnx("make_cpkt_linked");
+
+    peer_send(p, c);
+}
+
+void
 peer_update(peer p)
 {
     if (peer_needs_ping(p)) peer_send_ping(p);

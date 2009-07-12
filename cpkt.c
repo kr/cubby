@@ -45,6 +45,16 @@ typedef struct cpkt_link {
     uint32_t key[3];
 } *cpkt_link;
 
+typedef struct cpkt_linked {
+    CPKT_COMMON;
+
+    // Bytes from the network
+    uint8_t type;
+    uint8_t pad[7];
+
+    uint32_t key[3];
+} *cpkt_linked;
+
 typedef void(*cpkt_handle_fn)(cpkt, peer);
 
 static void cpkt_ping_handle(cpkt cp, peer p);
@@ -76,6 +86,7 @@ enum cpkt_type_codes {
     CPKT_TYPE_CODE_PING,
     CPKT_TYPE_CODE_PONG,
     CPKT_TYPE_CODE_LINK,
+    CPKT_TYPE_CODE_LINKED,
 };
 
 #define KNOWN_TYPES 3
@@ -174,8 +185,7 @@ cpkt_link_handle(cpkt generic, peer p)
     int r = manager_add_link(p->manager, c->key, p);
     if (r == -1) return; // just drop it -- the peer can retry if they want
 
-    warnx("TODO send LINKED");
-    // send_linked();
+    peer_send_linked(p, c->key);
 }
 
 void
@@ -242,6 +252,19 @@ make_cpkt_link(uint32_t *key)
     if (!c) return warnx("make_cpkt"), (cpkt) 0;
 
     cpkt_set_type((cpkt) c, CPKT_TYPE_CODE_LINK);
+    c->key[0] = key[0];
+    c->key[1] = key[1];
+    c->key[2] = key[2];
+    return (cpkt) c;
+}
+
+cpkt
+make_cpkt_linked(uint32_t *key)
+{
+    cpkt_linked c = (cpkt_linked) make_cpkt(CPKT_BASE_SIZE(linked));
+    if (!c) return warnx("make_cpkt"), (cpkt) 0;
+
+    cpkt_set_type((cpkt) c, CPKT_TYPE_CODE_LINKED);
     c->key[0] = key[0];
     c->key[1] = key[1];
     c->key[2] = key[2];
