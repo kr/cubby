@@ -5,6 +5,7 @@
 #include <errno.h>
 
 #include "cpkt.h"
+#include "prot.h"
 #include "peer.h"
 #include "util.h"
 
@@ -60,8 +61,9 @@ typedef void(*cpkt_handle_fn)(cpkt, peer);
 static void cpkt_ping_handle(cpkt cp, peer p);
 static void cpkt_pong_handle(cpkt cp, peer p);
 static void cpkt_link_handle(cpkt cp, peer p);
+static void cpkt_linked_handle(cpkt cp, peer p);
 
-struct cpkt_type {
+typedef struct cpkt_type {
     const char *name;
 
     // The number of bytes in the smallest possible packet of this type.
@@ -73,7 +75,7 @@ struct cpkt_type {
     uint16_t inc;
 
     cpkt_handle_fn fn;
-};
+} *cpkt_type;
 
 #define CPKT_BASE_SIZE(t) \
     (sizeof(struct cpkt_##t) - sizeof(struct cpkt))
@@ -87,13 +89,14 @@ enum cpkt_type_codes {
     CPKT_TYPE_CODE_PONG,
     CPKT_TYPE_CODE_LINK,
     CPKT_TYPE_CODE_LINKED,
+    KNOWN_CPKT_TYPE_CODES,
 };
 
-#define KNOWN_TYPES 3
-static struct cpkt_type types[KNOWN_TYPES] = {
+static struct cpkt_type types[KNOWN_CPKT_TYPE_CODES] = {
     CPKT_TYPE(ping, 0),
     CPKT_TYPE(pong, 0),
     CPKT_TYPE(link, 0),
+    CPKT_TYPE(linked, 0),
 };
 
 static inline int
@@ -188,14 +191,29 @@ cpkt_link_handle(cpkt generic, peer p)
     peer_send_linked(p, c->key);
 }
 
+static void
+cpkt_linked_handle(cpkt generic, peer p)
+{
+    cpkt_linked c = (cpkt_linked) cpkt_check_size(generic);
+
+    prot_linked(p, c->key);
+}
+
 void
 cpkt_handle(cpkt cp, peer p)
 {
-    if (cpkt_get_type(cp) >= KNOWN_TYPES) {
+    if (cpkt_get_type(cp) >= KNOWN_CPKT_TYPE_CODES) {
         return warnx("ignoring message: unknown type %x", cpkt_get_type(cp));
     }
 
-    types[cpkt_get_type(cp)].fn(cp, p);
+    cpkt_type t = types + cpkt_get_type(cp);
+
+    if (!t->fn) {
+        return warnx("ignoring %s (%x) message: unconfigured",
+                cpkt_type_name(cp), cpkt_get_type(cp));
+    }
+
+    t->fn(cp, p);
 }
 
 cpkt

@@ -1,6 +1,7 @@
 // prot.c -- Protocol
 
 #include "prot.h"
+#include "key.h"
 #include "manager.h"
 
 #define DIRENT_W 2
@@ -10,8 +11,10 @@
 typedef struct link_progress {
     manager manager;
     uint32_t key[3];
+
     prot_send_link_fn cb;
     void *data;
+
     struct {
         peer peer;
         uint64_t first_at;
@@ -59,6 +62,22 @@ prot_outstanding_link_update(arr a, void *item, size_t index)
     }
 
     return 1; // keep it in the list
+}
+
+void
+prot_linked(peer p, uint32_t *key)
+{
+    arr a = &p->manager->outstanding_links;
+
+    for (int i = 0; i < a->used; i++) {
+        link_progress prog = a->items[i];
+        if (!key_eq(key, prog->key)) continue;
+        for (int j = 0; j < DIRENT_W; j++) {
+            if (prog->peers[j].peer == p) {
+                prog->peers[j].peer = 0;
+            }
+        }
+    }
 }
 
 void
