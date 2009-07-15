@@ -139,7 +139,6 @@ opts(manager mgr, char **argv)
                 break;
             case 'c':
                 udp_port = parse_port(require_arg("-c", *argv++));
-                util_id = ntohs(udp_port);
                 break;
             case 'p':
                 mgr->http_port = parse_port(require_arg("-p", *argv++));
@@ -170,6 +169,7 @@ main(int argc, char **argv)
     mgr.memcache_port = htons(DEFAULT_MEMCACHE_PORT);
     mgr.http_port = htons(DEFAULT_HTTP_PORT);
     opts(&mgr, argv + 1);
+    util_id = ntohs(udp_port);
 
     r = manager_init(&mgr);
     if (r == -1) return warnx("cannot continue"), 2;

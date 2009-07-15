@@ -28,7 +28,7 @@
 #include "util.h"
 
 char *progname = 0; /* defined as extern in util.h */
-int util_id; /* defined as extern in util.h */
+int util_id = 0; /* defined as extern in util.h */
 
 static void
 raw_vwarnx(const char *err, const char *fmt, va_list args)
