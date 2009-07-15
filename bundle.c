@@ -85,7 +85,6 @@ int
 bundle_open(bundle b)
 {
     int fd, r;
-    struct stat stat_s;
 
     fd = open(b->name, O_RDWR|O_CREAT, 0600);
     if (fd == -1) return warn("open(%s)", b->name), -1;
@@ -97,13 +96,10 @@ bundle_open(bundle b)
         return -1;
     }
 
-    r = fstat(fd, &stat_s);
-    if (r == -1) {
-        warn("fstat");
-        close(fd);
-        return -1;
-    }
-    b->tot_size = stat_s.st_size;
+    b->tot_size = lseek(fd, 0, SEEK_END);
+    warnx("size of %s is %lld bytes", b->name, b->tot_size);
+    lseek(fd, 0, SEEK_SET); // Put it back. (Is this necessary?)
+
     b->reg_size = b->tot_size - sizeof(struct bundle_storage);
     b->nregions = ((b->reg_size - 1) >> REGION_BITS) + 1;
 
