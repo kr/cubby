@@ -117,6 +117,7 @@ manager_read_regions(manager mgr, uint16_t count)
                 manager_add_free_region(mgr, reg);
             }
         }
+        bundle_sync(bun, 1);
     }
 
     return 0;

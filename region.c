@@ -10,6 +10,8 @@
 #include "key.h"
 #include "util.h"
 
+#define REGION_MAGIC 0x8c9ba2d0
+
 size_t
 region_blob_offset(region r, blob b)
 {
@@ -68,9 +70,20 @@ region_init(region r, int id, region_storage storage, size_t size)
     r->next = 0;
 }
 
+static void
+region_init_storage(region reg)
+{
+    reg->storage->magic = REGION_MAGIC;
+    memset(reg->storage->blobs, 0, sizeof(uint32_t) * 4);
+}
+
 void
 region_read(region reg, manager mgr, const char *bundle_name)
 {
+    if (reg->storage->magic != REGION_MAGIC) {
+        return region_init_storage(reg);
+    }
+
     blob bl;
     for (bl = (blob) reg->storage->blobs; ; bl = blob_next(bl)) {
         int r;

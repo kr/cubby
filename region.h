@@ -27,8 +27,9 @@ typedef struct region *region;
 /* If you modify this structure, you must increment BUNDLE_VERSION in bundle.h.
  */
 struct region_storage {
+    uint32_t magic;
     uint32_t flags;
-    char pad[7 * 8 + 4]; // reserved for future use
+    char pad[7 * 8]; // reserved for future use
     char blobs[];
 };
 

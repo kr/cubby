@@ -12,7 +12,7 @@
 #include "manager.h"
 #include "spht.h"
 
-#define BUNDLE_VERSION 1
+#define BUNDLE_VERSION 2
 
 /* This is the on-disk structure for a bundle. */
 /* PERFORMANCE NOTE: accessing members of this structure is likely to cause
