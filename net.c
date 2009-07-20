@@ -259,7 +259,7 @@ net_init(struct in_addr host_addr, int udp_port, manager mgr)
         // This return value is undocumented (!), but this seems to work.
         if (r == -1) {
             warn("evhttp_bind_socket");
-            warnx("could not open port %d", mgr->http_port);
+            warnx("could not open port %d", ntohs(mgr->http_port));
             exit(3);
         }
 
