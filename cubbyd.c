@@ -24,6 +24,7 @@
 
 static struct in_addr host_addr = {};
 static int udp_port;
+static int use_net = 1;
 
 static void
 usage(const char *msg, const char *arg)
@@ -43,6 +44,7 @@ usage(const char *msg, const char *arg)
       " -b ADDR[:PORT] bootstrap by connecting to ADDR on PORT (default %d)\n"
       " -i             initialize storage (negates -I)\n"
       " -I             don't initalize storage (default; negates -i)\n"
+      " -n             quit before any networking (useful with -i)\n"
       " -v             show version information\n"
       " -h             show this help\n",
       progname, DEFAULT_MEMCACHE_PORT, DEFAULT_HTTP_PORT,
@@ -146,6 +148,9 @@ opts(manager mgr, char **argv)
             case 'b':
                 add_bootstrap_peer(mgr, require_arg("-b", *argv++));
                 break;
+            case 'n':
+                use_net = 0;
+                break;
             case 'h':
                 usage(0, 0);
             case 'v':
@@ -174,6 +179,8 @@ main(int argc, char **argv)
     r = manager_init(&mgr);
     if (r == -1) return warnx("cannot continue"), 2;
     if (r == -2) usage("Try the -f option", 0);
+
+    if (!use_net) return 0;
 
     // We use random(3) just to provide jitter in a few places. It's okay if we
     // don't have a very good seed here. We just want a reasonable chance it'll
