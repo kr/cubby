@@ -14,7 +14,7 @@ typedef struct cpkt_ping {
 
     // Bytes from the network
     uint8_t type;
-    uint8_t pad[7];
+    uint8_t pad[11];
     uint16_t memcache_port;
     uint16_t http_port;
 } *cpkt_ping;
@@ -41,7 +41,7 @@ typedef struct cpkt_link {
 
     // Bytes from the network
     uint8_t type;
-    uint8_t pad[7];
+    uint8_t pad[11];
 
     uint32_t key[3];
 } *cpkt_link;
@@ -51,7 +51,7 @@ typedef struct cpkt_linked {
 
     // Bytes from the network
     uint8_t type;
-    uint8_t pad[7];
+    uint8_t pad[11];
 
     uint32_t key[3];
 } *cpkt_linked;

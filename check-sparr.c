@@ -38,7 +38,7 @@ __CUT__empty_spgroup_setting_first_should_work()
 
     ASSERT(!r, "should claim success");
     ASSERT(g->fill == 1, "g should contain one thing");
-    ASSERT(((int) spgroup_get(g, 0)) == 7, "g[0] should be 7");
+    ASSERT(((size_t) spgroup_get(g, 0)) == 7, "g[0] should be 7");
     ASSERT(spgroup_test(g, 0), "g[0] should be full");
 }
 
@@ -82,7 +82,7 @@ __CUT__empty_spgroup_setting_second_then_first()
 
     ASSERT(!r, "should claim success");
     ASSERT(g->fill == 2, "g should contain two things");
-    ASSERT(((int) spgroup_get(g, 1)) == 8, "g[1] should be 8");
+    ASSERT(((size_t) spgroup_get(g, 1)) == 8, "g[1] should be 8");
     ASSERT(spgroup_test(g, 1), "g[1] should be full");
 }
 
@@ -126,7 +126,7 @@ __CUT__empty_spgroup_setting_many()
 
     for (i = 0; i < 10; i++) {
         ASSERT(spgroup_test(g, i), "g[i] should be full");
-        ASSERT(((int) spgroup_get(g, i)) == i + 1, "g[i] should be equal");
+        ASSERT(((size_t) spgroup_get(g, i)) == i + 1, "g[i] should be equal");
     }
     for (; i < 48; i++) {
         ASSERT(!spgroup_test(g, i), "g[i] should be empty");
@@ -157,11 +157,11 @@ void
 __CUT__full_spgroup_should_be_full()
 {
     ASSERT(g->fill == 3, "g should contain three things");
-    ASSERT(((int) spgroup_get(g, 0)) == 7, "g[0] should be 7");
+    ASSERT(((size_t) spgroup_get(g, 0)) == 7, "g[0] should be 7");
     ASSERT(spgroup_test(g, 0), "g[0] should be full");
-    ASSERT(((int) spgroup_get(g, 1)) == 11, "g[1] should be 11");
+    ASSERT(((size_t) spgroup_get(g, 1)) == 11, "g[1] should be 11");
     ASSERT(spgroup_test(g, 1), "g[1] should be full");
-    ASSERT(((int) spgroup_get(g, 2)) == 13, "g[2] should be 13");
+    ASSERT(((size_t) spgroup_get(g, 2)) == 13, "g[2] should be 13");
     ASSERT(spgroup_test(g, 2), "g[2] should be full");
 }
 
@@ -186,9 +186,9 @@ __CUT__full_spgroup_deleting_first_should_leave_others()
     r = spgroup_rm(g, 0);
 
     ASSERT(!r, "should claim success");
-    ASSERT(((int) spgroup_get(g, 1)) == 11, "g[1] should be 11");
+    ASSERT(((size_t) spgroup_get(g, 1)) == 11, "g[1] should be 11");
     ASSERT(spgroup_test(g, 1), "g[1] should be full");
-    ASSERT(((int) spgroup_get(g, 2)) == 13, "g[2] should be 13");
+    ASSERT(((size_t) spgroup_get(g, 2)) == 13, "g[2] should be 13");
     ASSERT(spgroup_test(g, 2), "g[2] should be full");
 }
 
@@ -237,7 +237,7 @@ __CUT__empty_sparr_setting_first_should_work()
 
     ASSERT(!r, "should claim success");
     ASSERT(a->fill == 1, "a should contain one thing");
-    ASSERT(((int) sparr_get(a, 0)) == 7, "a[0] should be 7");
+    ASSERT(((size_t) sparr_get(a, 0)) == 7, "a[0] should be 7");
     ASSERT(sparr_test(a, 0), "g[0] should be full");
 }
 
@@ -292,11 +292,11 @@ void
 __CUT__full_sparr_should_be_full()
 {
     ASSERT(a->fill == 3, "a should contain three things");
-    ASSERT(((int) sparr_get(a, 0)) == 7, "a[0] should be 7");
+    ASSERT(((size_t) sparr_get(a, 0)) == 7, "a[0] should be 7");
     ASSERT(sparr_test(a, 0), "g[0] should be full");
-    ASSERT(((int) sparr_get(a, 1)) == 11, "a[1] should be 11");
+    ASSERT(((size_t) sparr_get(a, 1)) == 11, "a[1] should be 11");
     ASSERT(sparr_test(a, 1), "g[1] should be full");
-    ASSERT(((int) sparr_get(a, 2)) == 13, "a[2] should be 13");
+    ASSERT(((size_t) sparr_get(a, 2)) == 13, "a[2] should be 13");
     ASSERT(sparr_test(a, 2), "g[2] should be full");
 }
 
@@ -321,9 +321,9 @@ __CUT__full_sparr_deleting_first_should_leave_others()
     r = sparr_rm(a, 0);
 
     ASSERT(!r, "should claim success");
-    ASSERT(((int) sparr_get(a, 1)) == 11, "a[1] should be 11");
+    ASSERT(((size_t) sparr_get(a, 1)) == 11, "a[1] should be 11");
     ASSERT(sparr_test(a, 1), "g[1] should be full");
-    ASSERT(((int) sparr_get(a, 2)) == 13, "a[2] should be 13");
+    ASSERT(((size_t) sparr_get(a, 2)) == 13, "a[2] should be 13");
     ASSERT(sparr_test(a, 2), "g[2] should be full");
 }
 

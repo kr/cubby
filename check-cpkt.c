@@ -33,8 +33,8 @@ __CUT__cpkt_void_handle_bad_ping()
     p = make_cpkt(50);
     cpkt_set_type(p, CPKT_TYPE_PING);
 
-    ASSERT(cpkt_base_size(p) == 12, "got %d", cpkt_base_size(p));
-    ASSERT(cpkt_flex_size(p) == 38, "got %d", cpkt_flex_size(p));
+    ASSERT(cpkt_base_size(p) == 16, "got %d", cpkt_base_size(p));
+    ASSERT(cpkt_flex_size(p) == 34, "got %d", cpkt_flex_size(p));
 
     q = cpkt_check_size(p);
     ASSERT(!q, "size should be invalid");
