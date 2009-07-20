@@ -64,7 +64,7 @@ bundle_init(bundle b)
 {
     uint16_t i;
 
-    memset(b->storage, 0, b->tot_size);
+    memset(b->storage, 0, sizeof(struct bundle_storage));
 
     for (i = 0; i < b->nregions; i++) {
         region_storage rs = bundle_get_region_storage(b, i);
