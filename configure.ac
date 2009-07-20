@@ -1,6 +1,6 @@
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.63])
+AC_PREREQ([2.61])
 AC_INIT([cubby], m4_include([version.m4]), [kr@xph.us])
 AC_CONFIG_SRCDIR([cubbyd.c])
 AC_CONFIG_HEADERS([config.h])
