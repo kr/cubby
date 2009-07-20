@@ -102,7 +102,6 @@ manager_read_regions(manager mgr, uint16_t count)
     for (i = 0; i < mgr->nbundles; i++) {
         bundle bun = bundle_get(mgr, i);
         for (j = 0; j < bun->nregions; j++) {
-            blob bl;
             size_t size;
             region reg = &mgr->all_regions[n++];
 
@@ -112,39 +111,8 @@ manager_read_regions(manager mgr, uint16_t count)
             // the last region might be shorter
 
             region_init(reg, n - 1, bundle_get_region_storage(bun, j), size);
+            region_read(reg, mgr, bun->name);
 
-            for (bl = (blob) reg->storage->blobs; ; bl = blob_next(bl)) {
-                int r;
-                dirent de;
-                rdesc_local rdesc;
-
-                if (!bl->size) break;
-                raw_warnx("blob size is %d", bl->size);
-
-                /* This blob claims to extend past the end of the region! */
-                if (((char *) bl) >= reg->top) {
-                    warnx("%s: last blob overextended", bun->name);
-                    break;
-                }
-
-                r = blob_verify(bl);
-                if (r == -1) {
-                    warnx("verification failed for blob at offset 0x%x\n",
-                          region_blob_offset(reg, bl));
-                    continue;
-                }
-
-                de = make_dirent(bl->key, 1);
-                rdesc = (rdesc_local) &de->rdescs[0];
-                rdesc->flags = RDESC_LOCAL;
-                rdesc->reg = reg->id;
-                rdesc->off = region_blob_offset(reg, bl);
-                spht_set(mgr->directory, de);
-                char fkey[27];
-                key_fmt(fkey, bl->key);
-                raw_warnx("read one k = %s", fkey);
-            }
-            reg->free = (char *) bl;
             if (!region_close_to_full(reg)) {
                 manager_add_free_region(mgr, reg);
             }

@@ -7,6 +7,7 @@
 #include "bundle.h"
 #include "dirent.h"
 #include "spht.h"
+#include "key.h"
 #include "util.h"
 
 size_t
@@ -63,8 +64,46 @@ region_init(region r, int id, region_storage storage, size_t size)
     r->id = id;
     r->storage = storage;
     r->free = r->storage->blobs;
-    r->top = ((char *) storage) + size;
+    r->top = ((char *) r->storage) + size;
     r->next = 0;
+}
+
+void
+region_read(region reg, manager mgr, const char *bundle_name)
+{
+    blob bl;
+    for (bl = (blob) reg->storage->blobs; ; bl = blob_next(bl)) {
+        int r;
+        dirent de;
+        rdesc_local rdesc;
+
+        if (!bl->size) break;
+        raw_warnx("blob size is %d", bl->size);
+
+        /* This blob claims to extend past the end of the region! */
+        if (((char *) bl) >= reg->top) {
+            warnx("%s: last blob overextended", bundle_name);
+            break;
+        }
+
+        r = blob_verify(bl);
+        if (r == -1) {
+            warnx("verification failed for blob at offset 0x%x\n",
+                    region_blob_offset(reg, bl));
+            continue;
+        }
+
+        de = make_dirent(bl->key, 1);
+        rdesc = (rdesc_local) &de->rdescs[0];
+        rdesc->flags = RDESC_LOCAL;
+        rdesc->reg = reg->id;
+        rdesc->off = region_blob_offset(reg, bl);
+        spht_set(mgr->directory, de);
+        char fkey[27];
+        key_fmt(fkey, bl->key);
+        raw_warnx("read one k = %s", fkey);
+    }
+    reg->free = (char *) bl;
 }
 
 static size_t

@@ -49,6 +49,7 @@ blob region_allocate_blob(region r, size_t size);
 void region_delete_blob(region r, blob b);
 
 void region_init(region r, int id, region_storage storage, size_t size);
+void region_read(region reg, manager mgr, const char *bundle_name);
 
 size_t region_blob_offset(region r, blob b);
 
