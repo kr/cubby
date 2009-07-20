@@ -15,8 +15,11 @@ typedef struct region *region;
 #include "blob.h"
 #include "manager.h"
 
-#define REGION_BITS 19
-//#define REGION_BITS 32
+#if _LP64
+# define REGION_BITS 32
+#else
+# define REGION_BITS 19
+#endif
 
 /* This is the on-disk structure for a region. */
 /* PERFORMANCE NOTE: accessing members of this structure is likely to cause

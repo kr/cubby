@@ -107,7 +107,7 @@ manager_read_regions(manager mgr, uint16_t count)
             region reg = &mgr->all_regions[n++];
 
             // Total size of the region, including the headers
-            size = 1 << REGION_BITS;
+            size = 1LU << REGION_BITS;
             if (j == bun->nregions - 1) size = bun->reg_size % size;
             // the last region might be shorter
 

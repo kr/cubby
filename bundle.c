@@ -55,7 +55,8 @@ bundle_sync(bundle b, int sync)
 region_storage
 bundle_get_region_storage(bundle b, uint16_t i)
 {
-    return (region_storage) (b->storage->regions + (i << REGION_BITS));
+    size_t off = ((size_t) i) << REGION_BITS;
+    return (region_storage) (b->storage->regions + off);
 }
 
 static int
