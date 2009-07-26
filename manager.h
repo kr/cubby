@@ -11,6 +11,7 @@
 typedef struct manager *manager;
 
 #include "region.h"
+#include "bundle.h"
 #include "arr.h"
 #include "heap.h"
 #include "spht.h"

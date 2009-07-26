@@ -9,14 +9,23 @@
 #include "peer.h"
 #include "util.h"
 
+typedef struct cpkt_root_key_desc {
+    uint32_t key[3];
+    uint16_t chain_len;
+    uint16_t pad; // reserved
+} *cpkt_root_key_desc;
+
 typedef struct cpkt_ping {
     CPKT_COMMON;
 
     // Bytes from the network
     uint8_t type;
-    uint8_t pad[11];
+    uint8_t pad[9];
     uint16_t memcache_port;
     uint16_t http_port;
+    uint16_t root_key_count;
+
+    struct cpkt_root_key_desc root_keys[];
 } *cpkt_ping;
 
 typedef struct cpkt_peer_desc {
@@ -237,13 +246,21 @@ make_cpkt(uint16_t size)
 cpkt
 make_cpkt_ping(in_addr_t addr, int cp_port, manager mgr)
 {
-    cpkt_ping cp = (cpkt_ping) make_cpkt(CPKT_BASE_SIZE(ping));
+    cpkt_ping cp = (cpkt_ping) make_cpkt(CPKT_BASE_SIZE(ping) +
+            sizeof(struct cpkt_root_key_desc) * mgr->nbundles);
     if (!cp) return warnx("make_cpkt"), (cpkt) 0;
 
     cpkt_set_type((cpkt) cp, CPKT_TYPE_CODE_PING);
 
     cp->memcache_port = mgr->memcache_port;
     cp->http_port = mgr->http_port;
+    cp->root_key_count = mgr->nbundles;
+    for (int i = 0; i < mgr->nbundles; i++) {
+        cp->root_keys[i].key[0] = mgr->all_bundles[i].storage->root_key[0];
+        cp->root_keys[i].key[1] = mgr->all_bundles[i].storage->root_key[0];
+        cp->root_keys[i].key[2] = mgr->all_bundles[i].storage->root_key[2];
+        cp->root_keys[i].chain_len = mgr->all_bundles[i].storage->key_chain_len;
+    }
     return (cpkt) cp;
 }
 

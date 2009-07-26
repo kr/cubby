@@ -22,7 +22,8 @@ typedef struct bundle_storage {
     uint32_t magic;
     uint32_t version;
     uint32_t root_key[3];
-    char pad[4 + 7 * 8]; // reserved for future use
+    uint32_t key_chain_len;
+    char pad[7 * 8]; // reserved for future use
     char regions[];
 } *bundle_storage;
 
