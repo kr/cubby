@@ -37,6 +37,7 @@ shared_sources = \
 
 unit_tests = \
   check-arr.c \
+  check-bundle.c \
   check-cpkt.c \
   check-dirent.c \
   check-heap.c \

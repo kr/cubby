@@ -12,7 +12,7 @@
 #include "manager.h"
 #include "spht.h"
 
-#define BUNDLE_VERSION 2
+#define BUNDLE_VERSION 3
 
 /* This is the on-disk structure for a bundle. */
 /* PERFORMANCE NOTE: accessing members of this structure is likely to cause
@@ -21,7 +21,8 @@
 typedef struct bundle_storage {
     uint32_t magic;
     uint32_t version;
-    char pad[7 * 8]; // reserved for future use
+    uint32_t root_key[3];
+    char pad[4 + 7 * 8]; // reserved for future use
     char regions[];
 } *bundle_storage;
 
@@ -42,5 +43,6 @@ int add_bundle(manager mgr, char *name);
 void bundle_sync(bundle b, int sync);
 bundle bundle_get(manager mgr, uint16_t i);
 region_storage bundle_get_region_storage(bundle b, uint16_t i);
+int bundle_make_root_key(uint32_t *key);
 
 #endif //bundle_h
