@@ -42,7 +42,7 @@ typedef struct cpkt_pong {
     uint8_t type;
     uint8_t pad[7];
 
-    struct cpkt_peer_desc peers[];
+    struct cpkt_peer_desc peers[PONG_PEER_MAX];
 } *cpkt_pong;
 
 typedef struct cpkt_link {
@@ -267,8 +267,7 @@ make_cpkt_ping(in_addr_t addr, int cp_port, manager mgr)
 cpkt
 make_cpkt_pong(in_addr_t addr, uint16_t port, peer *peers, int len)
 {
-    cpkt_pong cp = (cpkt_pong) make_cpkt(CPKT_BASE_SIZE(pong) +
-            sizeof(struct cpkt_peer_desc) * len);
+    cpkt_pong cp = (cpkt_pong) make_cpkt(CPKT_BASE_SIZE(pong));
     if (!cp) return warnx("make_cpkt"), (cpkt) 0;
 
     cpkt_set_type((cpkt) cp, CPKT_TYPE_CODE_PONG);
