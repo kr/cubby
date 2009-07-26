@@ -96,7 +96,7 @@ peer_send_pong(peer p)
 
     int n = manager_find_closest_active_peers(m, m->key, PONG_COUNT, closest);
     cpkt pkt = make_cpkt_pong(0, 0, closest, n);
-    if (!pkt) return warnx("make_cpkt_ping");
+    if (!pkt) return warnx("make_cpkt_pong");
 
     peer_send(p, pkt);
 }
