@@ -235,15 +235,15 @@ make_cpkt(uint16_t size)
 }
 
 cpkt
-make_cpkt_ping(in_addr_t addr, int cp_port, int memcache_port, int http_port)
+make_cpkt_ping(in_addr_t addr, int cp_port, manager mgr)
 {
     cpkt_ping cp = (cpkt_ping) make_cpkt(CPKT_BASE_SIZE(ping));
     if (!cp) return warnx("make_cpkt"), (cpkt) 0;
 
     cpkt_set_type((cpkt) cp, CPKT_TYPE_CODE_PING);
 
-    cp->memcache_port = memcache_port;
-    cp->http_port = http_port;
+    cp->memcache_port = mgr->memcache_port;
+    cp->http_port = mgr->http_port;
     return (cpkt) cp;
 }
 

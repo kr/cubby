@@ -79,8 +79,7 @@ peer_touch(peer p)
 static void
 peer_send_ping(peer pr)
 {
-    cpkt pkt = make_cpkt_ping(pr->addr, pr->cp_port,
-            pr->manager->memcache_port, pr->manager->http_port);
+    cpkt pkt = make_cpkt_ping(pr->addr, pr->cp_port, pr->manager);
     if (!pkt) return warnx("make_cpkt_ping");
 
     peer_send(pr, pkt);
