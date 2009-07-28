@@ -28,6 +28,22 @@ __CUT__void_node_test_make_node_local()
 }
 
 void
+__CUT__void_node_test_make_node_local_null()
+{
+    uint32_t key[3] = { 0x81fb346d, 0x17368bd9, 0xd5dd941e };
+
+    node n = make_node_local(key, 0);
+    ASSERT(!n, "");
+}
+
+void
+__CUT__void_node_test_make_node_local_null_key()
+{
+    node n = make_node_local(0, (bundle) 5);
+    ASSERT(!n, "");
+}
+
+void
 __CUT__void_node_test_make_node_remote()
 {
     uint32_t exp[3] = { 0x81fb346d, 0x17368bd9, 0xd5dd941e };
@@ -40,6 +56,22 @@ __CUT__void_node_test_make_node_remote()
     ASSERT(n->key[2] == exp[2], "expected 0x%x, got 0x%x", exp[2], n->key[2]);
     ASSERT(n->peer == p, "expected %p, got %p", p, n->peer);
     ASSERT(!n->bundle, "expected %p, got %p", 0, n->bundle);
+}
+
+void
+__CUT__void_node_test_make_node_remote_null()
+{
+    uint32_t key[3] = { 0x81fb346d, 0x17368bd9, 0xd5dd941e };
+
+    node n = make_node_remote(key, 0);
+    ASSERT(!n, "");
+}
+
+void
+__CUT__void_node_test_make_node_remote_null_key()
+{
+    node n = make_node_remote(0, (peer) 5);
+    ASSERT(!n, "");
 }
 
 void
