@@ -3,6 +3,7 @@
 #include "bundle.h"
 #include "manager.h"
 #include "prot.h"
+#include "node.h"
 #include "key.h"
 #include "util.h"
 
@@ -123,6 +124,13 @@ manager_read_regions(manager mgr, uint16_t count)
     return 0;
 }
 
+static int
+manager_node_onremove(arr a, void *item, size_t index)
+{
+    node_free((node) item);
+    return 0; // ignored
+}
+
 int
 manager_init(manager m)
 {
@@ -132,6 +140,7 @@ manager_init(manager m)
     // Initialize the heap if necessary
     heap_init(&m->region_pool, (cmp_fn) region_space_cmp);
 
+    arr_init(&m->nodes, 0, manager_node_onremove);
     arr_init(&m->outstanding_links, 0, prot_outstanding_link_onremove);
 
     m->directory = make_spht(0);
@@ -288,3 +297,12 @@ manager_add_link(manager m, uint32_t *key, peer p)
 
     return 0;
 }
+
+int
+manager_add_node(manager mgr, node n)
+{
+    int r = arr_append(&mgr->nodes, n);
+    if (r != 1) return warnx("arr_append"), -1;
+    return 0;
+}
+

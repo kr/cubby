@@ -24,7 +24,6 @@ struct node {
 
 node make_node_local(uint32_t *key, bundle b);
 node make_node_remote(uint32_t *key, peer p);
-
-int add_node(manager mgr, node n);
+void node_free(node n);
 
 #endif //node_h

@@ -32,3 +32,9 @@ make_node_remote(uint32_t *key, peer p)
     if (!p) return 0;
     return make_node(key, 0, p);
 }
+
+void
+node_free(node n)
+{
+    free(n);
+}

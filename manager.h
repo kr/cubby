@@ -16,6 +16,7 @@ typedef struct manager *manager;
 #include "heap.h"
 #include "spht.h"
 #include "peer.h"
+#include "node.h"
 #include "cpkt.h"
 
 /* This is sort of a dumping ground for all the global state. This is slightly
@@ -41,6 +42,8 @@ struct manager {
 
     int memcache_port;
     int http_port;
+
+    struct arr nodes;
 
     cpkt out_head, out_tail;
 
@@ -75,5 +78,7 @@ int manager_find_closest_active_peers(manager m, uint32_t *key, int n,
         peer *out);
 
 int manager_add_link(manager m, uint32_t *key, peer p);
+
+int manager_add_node(manager mgr, node n);
 
 #endif //manager_h

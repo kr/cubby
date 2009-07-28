@@ -33,7 +33,10 @@ struct arr {
 
 void arr_init(arr a, arr_event_fn after_insert, arr_event_fn after_remove);
 void arr_clear(arr a);
+
+/* Return the number of items successfully appended: 0 or 1. */
 int arr_append(arr a, void *item);
+
 int arr_remove(arr a, void *item);
 int arr_contains(arr a, void *item);
 void *arr_take(arr a);

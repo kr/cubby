@@ -8,6 +8,8 @@
 # include <stdint.h>
 #endif /* else we get int types from config.h */
 
+typedef struct bundle *bundle;
+
 #include "region.h"
 #include "manager.h"
 #include "spht.h"
@@ -28,14 +30,14 @@ typedef struct bundle_storage {
 } *bundle_storage;
 
 /* In-memory descriptor for a bundle */
-typedef struct bundle {
+struct bundle {
     char *name;
     manager manager;
     uint16_t nregions;
     uint64_t tot_size; // size of bundle including the header
     uint64_t reg_size; // size available for regions
     bundle_storage storage;
-} *bundle;
+};
 
 extern int initialize_bundles;
 
