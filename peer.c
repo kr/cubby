@@ -92,7 +92,7 @@ peer_send_pong(peer p)
     if (!p) return;
 
     int n = manager_find_closest_active_peers(m, m->key, PONG_PEER_MAX, closest);
-    cpkt pkt = make_cpkt_pong(0, 0, closest, n);
+    cpkt pkt = make_cpkt_pong(0, 0, closest, n, m);
     if (!pkt) return warnx("make_cpkt_pong");
 
     peer_send(p, pkt);
