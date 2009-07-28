@@ -38,7 +38,7 @@ cpkt make_cpkt_pong(in_addr_t addr, uint16_t port, peer *peers, int len,
 cpkt make_cpkt_link(uint32_t *key);
 cpkt make_cpkt_linked(uint32_t *key);
 
-cpkt cpkt_check_size(cpkt p);
+cpkt cpkt_check_size(cpkt p, int *len);
 int cpkt_base_size(cpkt p);
 int cpkt_flex_size(cpkt p);
 int cpkt_get_type(cpkt c);

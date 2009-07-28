@@ -7,6 +7,7 @@
 #include "cpkt.h"
 #include "prot.h"
 #include "peer.h"
+#include "sha512.h"
 #include "util.h"
 
 typedef struct cpkt_root_key_desc {
@@ -154,9 +155,9 @@ cpkt_type_name(cpkt c)
 }
 
 inline cpkt
-cpkt_check_size(cpkt p)
+cpkt_check_size(cpkt p, int *len)
 {
-    uint16_t inc, trail;
+    uint16_t inc, trail, my_len = 0;
 
     // Is it too small?
     if (p->size < cpkt_base_size(p)) return 0;
@@ -164,21 +165,57 @@ cpkt_check_size(cpkt p)
     trail = cpkt_flex_size(p);
 
     inc = types[cpkt_get_type(p)].inc;
-    if (inc > 0) trail %= inc;
+    if (inc > 0) {
+        my_len = trail / inc;
+        trail %= inc;
+    }
 
     // Is it an odd size?
     if (trail != 0) return 0;
 
+    if (len) *len = my_len;
+
     return p;
+}
+
+/* This function uses privately allocated static memory. Caution is advised. */
+static uint32_t *
+cpkt_next_key(uint32_t *prev)
+{
+    static uint32_t next[3];
+
+    sha512((char *) prev, 12, next, 12);
+    return next;
+}
+
+static void
+cpkt_add_nodes(peer p, struct cpkt_root_key_desc root_keys[], int len)
+{
+    manager mgr = p->manager;
+    for (int i = 0; i < len; i++) {
+        cpkt_root_key_desc rkd = root_keys + i;
+        uint32_t *key = rkd->key;
+        for (int j = 0; j < rkd->chain_len; j++, key = cpkt_next_key(key)) {
+            node n = make_node_remote(key, p);
+            if (!n) {
+                warn("make_node_remote");
+                continue;
+            }
+            manager_add_node(mgr, n);
+        }
+    }
 }
 
 // Assumes correct type.
 static void
 cpkt_ping_handle(cpkt cp, peer p)
 {
-    cpkt_ping cp_ping = (cpkt_ping) cpkt_check_size(cp);
+    int len;
+    cpkt_ping cp_ping = (cpkt_ping) cpkt_check_size(cp, &len);
 
     if (!cp_ping) return warnx("cp %p is not a ping packet", cp);
+
+    cpkt_add_nodes(p, cp_ping->root_keys, len);
 
     peer_send_pong(p);
 }
@@ -186,14 +223,17 @@ cpkt_ping_handle(cpkt cp, peer p)
 static void
 cpkt_pong_handle(cpkt cp, peer p)
 {
-    // FIXME: stub
-    raw_warnx("got pong");
+    int len;
+    cpkt_pong cp_pong = (cpkt_pong) cpkt_check_size(cp, &len);
+    if (!cp_pong) return warnx("cp %p is not a pong packet", cp);
+
+    cpkt_add_nodes(p, cp_pong->root_keys, len);
 }
 
 static void
 cpkt_link_handle(cpkt generic, peer p)
 {
-    cpkt_link c = (cpkt_link) cpkt_check_size(generic);
+    cpkt_link c = (cpkt_link) cpkt_check_size(generic, 0);
 
     int r = manager_add_link(p->manager, c->key, p);
     if (r == -1) return; // just drop it -- the peer can retry if they want
@@ -204,7 +244,7 @@ cpkt_link_handle(cpkt generic, peer p)
 static void
 cpkt_linked_handle(cpkt generic, peer p)
 {
-    cpkt_linked c = (cpkt_linked) cpkt_check_size(generic);
+    cpkt_linked c = (cpkt_linked) cpkt_check_size(generic, 0);
 
     prot_linked(p, c->key);
 }

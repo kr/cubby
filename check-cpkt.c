@@ -28,6 +28,7 @@ __CUT__cpkt_void_make()
 void
 __CUT__cpkt_void_handle_bad_ping()
 {
+    int len = 1234;
     cpkt q;
 
     p = make_cpkt(50);
@@ -36,8 +37,9 @@ __CUT__cpkt_void_handle_bad_ping()
     ASSERT(cpkt_base_size(p) == 16, "got %d", cpkt_base_size(p));
     ASSERT(cpkt_flex_size(p) == 34, "got %d", cpkt_flex_size(p));
 
-    q = cpkt_check_size(p);
+    q = cpkt_check_size(p, &len);
     ASSERT(!q, "size should be invalid");
+    ASSERT(len == 1234, "len should be unmodified");
 
     //cpkt_ping_handle(p);
     //ASSERT(0, "");
