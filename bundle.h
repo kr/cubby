@@ -16,6 +16,9 @@ typedef struct bundle *bundle;
 
 #define BUNDLE_VERSION 3
 
+// Roughly how many bytes of storage are represented by each overlay node.
+#define BUNDLE_OVERLAY_NODE_SIZE 25000000000
+
 /* This is the on-disk structure for a bundle. */
 /* PERFORMANCE NOTE: accessing members of this structure is likely to cause
    page faults and disk seeks */
@@ -24,7 +27,6 @@ typedef struct bundle_storage {
     uint32_t magic;
     uint32_t version;
     uint32_t root_key[3];
-    uint32_t key_chain_len;
     char pad[7 * 8]; // reserved for future use
     char regions[];
 } *bundle_storage;
@@ -36,6 +38,7 @@ struct bundle {
     uint16_t nregions;
     uint64_t tot_size; // size of bundle including the header
     uint64_t reg_size; // size available for regions
+    uint32_t key_chain_len;
     bundle_storage storage;
 };
 

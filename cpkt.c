@@ -300,7 +300,7 @@ make_cpkt_ping(in_addr_t addr, int cp_port, manager mgr)
         cp->root_keys[i].key[0] = mgr->all_bundles[i].storage->root_key[0];
         cp->root_keys[i].key[1] = mgr->all_bundles[i].storage->root_key[0];
         cp->root_keys[i].key[2] = mgr->all_bundles[i].storage->root_key[2];
-        cp->root_keys[i].chain_len = mgr->all_bundles[i].storage->key_chain_len;
+        cp->root_keys[i].chain_len = mgr->all_bundles[i].key_chain_len;
     }
     return (cpkt) cp;
 }
@@ -323,7 +323,7 @@ make_cpkt_pong(in_addr_t addr, uint16_t port, peer *peers, int len, manager mgr)
         cp->root_keys[i].key[0] = mgr->all_bundles[i].storage->root_key[0];
         cp->root_keys[i].key[1] = mgr->all_bundles[i].storage->root_key[0];
         cp->root_keys[i].key[2] = mgr->all_bundles[i].storage->root_key[2];
-        cp->root_keys[i].chain_len = mgr->all_bundles[i].storage->key_chain_len;
+        cp->root_keys[i].chain_len = mgr->all_bundles[i].key_chain_len;
     }
     return (cpkt) cp;
 }

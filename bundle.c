@@ -133,6 +133,7 @@ bundle_open(bundle b)
 
     b->reg_size = b->tot_size - sizeof(struct bundle_storage);
     b->nregions = ((b->reg_size - 1) >> REGION_BITS) + 1;
+    b->key_chain_len = b->reg_size / BUNDLE_OVERLAY_NODE_SIZE;
 
     b->storage = mmap(0, b->tot_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
     if (b->storage == MAP_FAILED) {
