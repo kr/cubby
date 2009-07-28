@@ -27,6 +27,7 @@ shared_sources = \
   heap.c heap.h \
   key.c key.h \
   manager.c manager.h \
+  node.c node.h \
   peer.c peer.h \
   prot.c prot.h \
   region.c region.h \
@@ -43,6 +44,7 @@ unit_tests = \
   check-heap.c \
   check-key.c \
   check-manager.c \
+  check-node.c \
   check-peer.c \
   check-region.c \
   check-sha512.c \
