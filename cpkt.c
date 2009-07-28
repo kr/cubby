@@ -274,6 +274,7 @@ make_cpkt_pong(in_addr_t addr, uint16_t port, peer *peers, int len, manager mgr)
 
     cpkt_set_type((cpkt) cp, CPKT_TYPE_CODE_PONG);
 
+    if (len > PONG_PEER_MAX) len = PONG_PEER_MAX;
     for (int i = 0; i < len; i++) {
         cp->peers[i].addr = peers[i]->addr;
         cp->peers[i].port = peers[i]->cp_port;
