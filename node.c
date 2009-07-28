@@ -33,6 +33,18 @@ make_node_remote(uint32_t *key, peer p)
     return make_node(key, 0, p);
 }
 
+int
+node_is_local(node n)
+{
+    return !!n->bundle;
+}
+
+int
+node_is_active(node n)
+{
+    return peer_active(n->peer);
+}
+
 void
 node_free(node n)
 {

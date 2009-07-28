@@ -70,4 +70,6 @@ void timeval_from_int(struct timeval *tv, uint64_t t);
 
 void key_for_peer(uint32_t key[3], in_addr_t addr, uint16_t port);
 
+int in_set(void **set, size_t len, void *item);
+
 #endif /*util_h*/

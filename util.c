@@ -125,3 +125,12 @@ key_for_peer(uint32_t *key, in_addr_t addr, uint16_t port)
     } buf = { addr, port };
     sha512((char *) &buf, sizeof(buf), key, sizeof(uint32_t) * 3);
 }
+
+int
+in_set(void **set, size_t len, void *item)
+{
+    for (int i = 0; i < len; i++) {
+        if (set[i] == item) return 1;
+    }
+    return 0;
+}

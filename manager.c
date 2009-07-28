@@ -251,19 +251,21 @@ manager_get_peer(manager m, in_addr_t addr, uint16_t port)
 }
 
 int
-manager_find_closest_active_peers(manager m, uint32_t *key, int n, peer *out)
+manager_find_closest_active_remote_nodes(manager m, uint32_t *key, int n,
+        node *out)
 {
-    peer ps[n + 1];
+    node ps[n + 1];
 
     int found = 0;
-    for (int i = 0; i < m->peers_fill; i++) {
-        if (!peer_active(m->peers[i])) continue;
+    for (int i = 0; i < m->nodes.used; i++) {
+        if (node_is_local(m->nodes.items[i])) return 0;
+        if (!node_is_active(m->nodes.items[i])) return 0;
         int j = min(found, n);
         found++;
-        ps[j] = m->peers[i];
+        ps[j] = m->nodes.items[i];
         for (; j; j--) {
             if (key_distance_cmp(m->key, ps[j - 1]->key, ps[j]->key) < 0) break;
-            peer t = ps[j];
+            node t = ps[j];
             ps[j] = ps[j - 1];
             ps[j - 1] = t;
         }
@@ -271,6 +273,24 @@ manager_find_closest_active_peers(manager m, uint32_t *key, int n, peer *out)
 
     for (int i = 0; i < n; i++) out[i] = ps[i];
     return found;
+}
+
+/* Just like manager_find_closest_active_remote_nodes, but only returns
+   distinct peers. */
+int
+manager_find_closest_active_peers(manager m, uint32_t *key, int n, peer *out)
+{
+    size_t all = m->nodes.used;
+    node ns[all];
+
+    int found = manager_find_closest_active_remote_nodes(m, key, all, ns);
+    int j = 0;
+
+    // O(n * found)
+    for (int i = 0; i < found && j < n; i++) {
+        if (!in_set((void **) out, j, ns[i]->peer)) out[j++] = ns[i]->peer;
+    }
+    return j;
 }
 
 int
