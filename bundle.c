@@ -30,6 +30,7 @@ add_bundle(manager mgr, char *name)
     mgr->all_bundles = new_bundles;
 
     mgr->all_bundles[mgr->nbundles].name = name;
+    mgr->all_bundles[mgr->nbundles].manager = mgr;
     mgr->all_bundles[mgr->nbundles].tot_size = 0;
     mgr->all_bundles[mgr->nbundles].reg_size = 0;
     mgr->all_bundles[mgr->nbundles].storage = 0;
