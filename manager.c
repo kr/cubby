@@ -250,10 +250,18 @@ manager_get_peer(manager m, in_addr_t addr, uint16_t port)
     return p;
 }
 
+/* Caller must provide an output array with enough space. */
 static int
-manager_get_peers(manager mgr, peer *list, peer_state state)
+manager_get_peers(manager mgr, peer_state state, peer *out)
 {
-    return 0;
+    int n = 0;
+    for (int i = 0; i < mgr->peers_fill; i++) {
+        peer p = mgr->peers[i];
+        if (p->state == state) {
+            out[n++] = p;
+        }
+    }
+    return n;
 }
 
 static void
@@ -384,10 +392,10 @@ manager_rebalance_work(manager mgr)
 
     peer rebalance_peers[mgr->peers_fill], recovery_peers[mgr->peers_fill];
 
-    int rebalance_peer_count = manager_get_peers(mgr, rebalance_peers,
-            peer_state_in_rebalance);
-    int recovery_peer_count = manager_get_peers(mgr, recovery_peers,
-            peer_state_in_recovery);
+    int rebalance_peer_count = manager_get_peers(mgr, peer_state_in_rebalance,
+            rebalance_peers);
+    int recovery_peer_count = manager_get_peers(mgr, peer_state_in_recovery,
+            recovery_peers);
 
     uint64_t start = now_usec();
     size_t i;
