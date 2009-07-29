@@ -121,4 +121,15 @@ void
 peer_update(peer p)
 {
     if (peer_needs_ping(p)) peer_send_ping(p);
+
+    switch (p->state) {
+        case peer_state_normal:
+        case peer_state_needs_rebalance:
+        case peer_state_in_rebalance:
+            if (!peer_active(p)) p->state = peer_state_needs_recovery;
+            break;
+        default:
+            break;
+    }
+
 }
