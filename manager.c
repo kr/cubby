@@ -250,6 +250,22 @@ manager_get_peer(manager m, in_addr_t addr, uint16_t port)
     return p;
 }
 
+static int
+manager_get_peers(manager mgr, peer *list, peer_state state)
+{
+    return 0;
+}
+
+static void
+manager_rebalance_dirent(manager mgr, dirent de, peer *peers, int n)
+{
+}
+
+static void
+manager_recover_dirent(manager mgr, dirent de, peer *peers, int n)
+{
+}
+
 int
 manager_find_closest_active_remote_nodes(manager m, uint32_t *key, int n,
         node *out)
@@ -326,3 +342,73 @@ manager_add_node(manager mgr, node n)
     return 0;
 }
 
+static int
+manager_any_peers_need_work(manager mgr)
+{
+    for (int i = 0; i < mgr->peers_fill; i++) {
+        if (mgr->peers[i]->state == peer_state_needs_rebalance ||
+                mgr->peers[i]->state == peer_state_needs_recovery) return 1;
+    }
+    return 0;
+}
+
+void
+manager_rebalance_work(manager mgr)
+{
+    int dirty = manager_any_peers_need_work(mgr);
+
+    // Nothing to do? Just return.
+    if (!dirty && !mgr->cursor.in_progress) return;
+
+    // New dirty peers? Start over.
+    if (dirty) {
+        for (int i = 0; i < mgr->peers_fill; i++) {
+            peer p = mgr->peers[i];
+            if (p->state == peer_state_needs_rebalance) {
+                p->state = peer_state_in_rebalance;
+            }
+            if (p->state == peer_state_needs_recovery) {
+                p->state = peer_state_in_recovery;
+            }
+        }
+        mgr->cursor.in_progress = 1;
+        mgr->cursor.pos = 0;
+        mgr->cursor.cap_check = mgr->directory->table->cap;
+    }
+
+    // Hash table grew? Start over.
+    if (mgr->cursor.cap_check != mgr->directory->table->cap) {
+        mgr->cursor.pos = 0;
+        mgr->cursor.cap_check = mgr->directory->table->cap;
+    }
+
+    peer rebalance_peers[mgr->peers_fill], recovery_peers[mgr->peers_fill];
+
+    int rebalance_peer_count = manager_get_peers(mgr, rebalance_peers,
+            peer_state_in_rebalance);
+    int recovery_peer_count = manager_get_peers(mgr, recovery_peers,
+            peer_state_in_recovery);
+
+    uint64_t start = now_usec();
+    size_t i;
+    for (i = mgr->cursor.pos; i < mgr->directory->table->cap; i++) {
+        // TODO: performance optimization: avoid so many syscalls; only check
+        // the time every N iterations.
+        if (now_usec() - start > 10000) break; // Stop after 10ms.
+
+        dirent de = sparr_get(mgr->directory->table, i);
+        if (!de || de == invalid_dirent) continue;
+
+        manager_rebalance_dirent(mgr, de, rebalance_peers, rebalance_peer_count);
+        manager_recover_dirent(mgr, de, recovery_peers, recovery_peer_count);
+    }
+    mgr->cursor.pos = i;
+
+    // Got to the end?
+    if (i == mgr->directory->table->cap) {
+        mgr->cursor.in_progress = 0;
+        for (int j = 0; j < rebalance_peer_count; j++) {
+            rebalance_peers[j]->state = peer_state_normal;
+        }
+    }
+}

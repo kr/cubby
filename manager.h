@@ -48,6 +48,12 @@ struct manager {
     cpkt out_head, out_tail;
 
     struct arr outstanding_links;
+
+    struct {
+        size_t pos;
+        size_t cap_check;
+        int in_progress;
+    } cursor;
 };
 
 int manager_init(manager m);
@@ -82,5 +88,7 @@ int manager_find_closest_active_remote_nodes(manager m, uint32_t *key, int n,
 int manager_add_link(manager m, uint32_t *key, peer p);
 
 int manager_add_node(manager mgr, node n);
+
+void manager_rebalance_work(manager mgr);
 
 #endif //manager_h

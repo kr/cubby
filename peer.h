@@ -12,6 +12,15 @@
 
 typedef struct peer *peer;
 
+typedef enum peer_states {
+    peer_state_invalid,
+    peer_state_normal,
+    peer_state_needs_rebalance,
+    peer_state_in_rebalance,
+    peer_state_needs_recovery,
+    peer_state_in_recovery,
+} peer_state;
+
 #include "manager.h"
 
 struct peer {
@@ -19,6 +28,7 @@ struct peer {
     uint32_t key[3];
     in_addr_t addr;
     int cp_port; // Cubby UDP control protocol port
+    peer_state state;
 
     uint64_t last_message_to; // Local time stamp of our last sent packet.
     uint64_t last_message_from; // Local time stamp of the last received packet.

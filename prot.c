@@ -86,6 +86,7 @@ prot_work(manager mgr)
     for (int i = 0; i < mgr->peers_fill; i++) {
         peer_update(mgr->peers[i]);
     }
+    manager_rebalance_work(mgr);
 
     arr_filter(&mgr->outstanding_links, prot_outstanding_link_update);
 }

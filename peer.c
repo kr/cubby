@@ -32,6 +32,7 @@ make_peer(manager mgr, in_addr_t addr, int cp_port)
     p->manager = mgr;
     p->addr = addr;
     p->cp_port = cp_port;
+    p->state = peer_state_needs_rebalance;
 
     // Compute key.
     key_for_peer(p->key, addr, cp_port);
