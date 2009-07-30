@@ -158,7 +158,7 @@ http_handle_blob_put(struct evhttp_request *req, manager mgr)
     bl->key[1] = k[1];
     bl->key[2] = k[2];
     bl->size = len;
-    bl->w = 3; // TODO pull this from the headers
+    bl->num_copies = 3; // TODO extract this from HTTP headers
 
     // TODO msync
 
