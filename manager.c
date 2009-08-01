@@ -265,8 +265,29 @@ manager_get_peers(manager mgr, peer_state state, peer *out)
 }
 
 static void
-manager_rebalance_dirent(manager mgr, dirent de, peer *peers, int n)
+manager_rebalance_dirent_cb(manager m, uint32_t *key, int error, void *old_node)
 {
+    if (error == 0) {
+        // TODO send UNLINK to old_node
+    } else {
+        // Buh.
+    }
+}
+
+static void
+manager_rebalance_dirent(manager mgr, dirent de)
+{
+    node owners[DIRENT_W + 1] = { 0, };
+
+    int n = manager_find_closest_active_remote_nodes(mgr, de->key,
+            DIRENT_W + 1, owners);
+    if (n < 1) return warnx("no active peers");
+
+    if (node_is_remote(owners[0]) &&
+            owners[0]->peer->state == peer_state_in_rebalance) {
+        prot_send_links(mgr, 1, &owners[0]->peer, de,
+                manager_rebalance_dirent_cb, owners[DIRENT_W]);
+    }
 }
 
 static void
@@ -390,10 +411,8 @@ manager_rebalance_work(manager mgr)
         mgr->cursor.cap_check = mgr->directory->table->cap;
     }
 
-    peer rebalance_peers[mgr->peers_fill], recovery_peers[mgr->peers_fill];
+    peer recovery_peers[mgr->peers_fill];
 
-    int rebalance_peer_count = manager_get_peers(mgr, peer_state_in_rebalance,
-            rebalance_peers);
     int recovery_peer_count = manager_get_peers(mgr, peer_state_in_recovery,
             recovery_peers);
 
@@ -407,7 +426,7 @@ manager_rebalance_work(manager mgr)
         dirent de = sparr_get(mgr->directory->table, i);
         if (!de || de == invalid_dirent) continue;
 
-        manager_rebalance_dirent(mgr, de, rebalance_peers, rebalance_peer_count);
+        manager_rebalance_dirent(mgr, de);
         manager_recover_dirent(mgr, de, recovery_peers, recovery_peer_count);
     }
     mgr->cursor.pos = i;
@@ -415,8 +434,11 @@ manager_rebalance_work(manager mgr)
     // Got to the end?
     if (i == mgr->directory->table->cap) {
         mgr->cursor.in_progress = 0;
-        for (int j = 0; j < rebalance_peer_count; j++) {
-            rebalance_peers[j]->state = peer_state_normal;
+        for (int j = 0; j < mgr->peers_fill; j++) {
+            peer p = mgr->peers[j];
+            if (p->state == peer_state_in_rebalance) {
+                p->state = peer_state_normal;
+            }
         }
     }
 }

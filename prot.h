@@ -5,6 +5,8 @@
 
 #include "manager.h"
 
+#define DIRENT_W 2
+
 typedef void(*prot_send_link_fn)(manager, uint32_t *, int, void *);
 
 void prot_init();
@@ -13,7 +15,10 @@ void prot_init();
 void prot_work(manager mgr);
 
 int prot_outstanding_link_onremove(arr a, void *item, size_t index);
-void prot_send_links(manager m, uint32_t *k, prot_send_link_fn cb, void *data);
+
+void prot_send_links(manager m, int n, peer *to, dirent de,
+        prot_send_link_fn cb, void *data);
+void prot_send_all_links(manager m, dirent de, prot_send_link_fn cb, void *data);
 void prot_linked(peer p, uint32_t *key);
 
 #endif //prot_h

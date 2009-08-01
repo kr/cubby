@@ -4,7 +4,6 @@
 #include "key.h"
 #include "manager.h"
 
-#define DIRENT_W 2
 #define ABANDON_LINK_INTERVAL (200 * MSEC)
 #define RETRY_LINK_INTERVAL (50 * MSEC)
 
@@ -19,7 +18,7 @@ typedef struct link_progress {
         peer peer;
         uint64_t first_at;
         uint64_t last_at;
-    } peers[2];
+    } peers[DIRENT_W];
 } *link_progress;
 
 int
@@ -98,25 +97,36 @@ prot_init()
 }
 
 void
-prot_send_links(manager m, uint32_t *k, prot_send_link_fn cb, void *data)
+prot_send_links(manager m, int n, peer *to, dirent de, prot_send_link_fn cb,
+        void *data)
 {
     link_progress prog = malloc(sizeof(struct link_progress));
-    if (!prog) return cb(m, k, 1, data);
+    if (!prog) return cb(m, de->key, 1, data);
 
     memset(prog, 0, sizeof(struct link_progress));
 
     prog->manager = m;
-    prog->key[0] = k[0];
-    prog->key[1] = k[1];
-    prog->key[2] = k[2];
+    prog->key[0] = de->key[0];
+    prog->key[1] = de->key[1];
+    prog->key[2] = de->key[2];
     prog->cb = cb;
     prog->data = data;
 
-    peer closest[DIRENT_W];
-    int n = manager_find_closest_active_peers(m, k, DIRENT_W, closest);
+    if (n > DIRENT_W) {
+        warnx("n > DIRENT_W (%d > %d) -- capping", n, DIRENT_W);
+        n = DIRENT_W;
+    }
     for (int i = 0; i < n; i++) {
-        prog->peers[i].peer = closest[i];
+        prog->peers[i].peer = to[i];
     }
 
     arr_append(&m->outstanding_links, prog);
+}
+
+void
+prot_send_all_links(manager m, dirent de, prot_send_link_fn cb, void *data)
+{
+    peer closest[DIRENT_W];
+    int n = manager_find_closest_active_peers(m, de->key, DIRENT_W, closest);
+    prot_send_links(m, n, closest, de, cb, data);
 }

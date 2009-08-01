@@ -162,7 +162,7 @@ http_handle_blob_put(struct evhttp_request *req, manager mgr)
 
     // TODO msync
 
-    prot_send_links(mgr, k, http_put_done, req);
+    prot_send_all_links(mgr, de, http_put_done, req);
 }
 
 void

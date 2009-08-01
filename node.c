@@ -40,6 +40,12 @@ node_is_local(node n)
 }
 
 int
+node_is_remote(node n)
+{
+    return !!n->peer;
+}
+
+int
 node_is_active(node n)
 {
     return peer_active(n->peer);

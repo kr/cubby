@@ -55,6 +55,8 @@ typedef struct cpkt_link {
     uint8_t pad[11];
 
     uint32_t key[3];
+    uint8_t pad2[4];
+    struct cpkt_peer_desc targets[];
 } *cpkt_link;
 
 typedef struct cpkt_linked {
