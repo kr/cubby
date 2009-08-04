@@ -14,7 +14,7 @@ typedef struct bundle *bundle;
 #include "manager.h"
 #include "spht.h"
 
-#define BUNDLE_VERSION 3
+#define BUNDLE_VERSION 4
 
 // Roughly how many bytes of storage are represented by each overlay node.
 #define BUNDLE_OVERLAY_NODE_SIZE 25000000000
@@ -27,7 +27,7 @@ typedef struct bundle_storage {
     uint32_t magic;
     uint32_t version;
     uint32_t root_key[3];
-    char pad[7 * 8]; // reserved for future use
+    char pad[4 + (1024 * 128 * 8)]; // reserved for future use
     char regions[];
 } *bundle_storage;
 

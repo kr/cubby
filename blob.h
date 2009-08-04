@@ -9,8 +9,8 @@
 #endif /* else we get int types from config.h */
 
 typedef struct blob {
-    uint32_t key[3];
     uint32_t size;
+    uint32_t key[3];
     uint8_t num_copies;
     char pad[7 + 8]; // reserved
     char data[];
