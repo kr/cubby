@@ -36,6 +36,12 @@ region_has_space_for_blob(region r, size_t size)
     return next_free <= r->top;
 }
 
+static void
+mark_blob_sentinel(char *free)
+{
+    ((blob) free)->size = 0;
+}
+
 blob
 region_allocate_blob(region r, size_t size)
 {
@@ -49,6 +55,7 @@ region_allocate_blob(region r, size_t size)
     if (next_free > r->top) return 0;
 
     r->free = next_free; // Actually allocate the space.
+    mark_blob_sentinel(next_free);
 
     return new;
 }
@@ -74,7 +81,7 @@ static void
 region_init_storage(region reg)
 {
     reg->storage->magic = REGION_MAGIC;
-    memset(reg->storage->blobs, 0, sizeof(uint32_t) * 4);
+    mark_blob_sentinel(reg->storage->blobs);
 }
 
 void
