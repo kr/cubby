@@ -8,6 +8,11 @@
 # include <stdint.h>
 #endif /* else we get int types from config.h */
 
+/* This is the on-disk structure for a blob. */
+/* PERFORMANCE NOTE: accessing members of this structure is likely to cause
+   page faults and disk seeks */
+/* If you modify this structure, you must increment BUNDLE_VERSION in bundle.h.
+ */
 typedef struct blob {
     uint32_t size; // size == 0 means end-of-region
     uint32_t key[3];
