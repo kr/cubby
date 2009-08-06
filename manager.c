@@ -303,8 +303,8 @@ manager_find_closest_active_remote_nodes(manager m, uint32_t *key, int n,
 
     int found = 0;
     for (int i = 0; i < m->nodes.used; i++) {
-        if (node_is_local(m->nodes.items[i])) return 0;
-        if (!node_is_active(m->nodes.items[i])) return 0;
+        if (node_is_local(m->nodes.items[i])) continue;
+        if (!node_is_active(m->nodes.items[i])) continue;
         int j = min(found, n);
         found++;
         ps[j] = m->nodes.items[i];
