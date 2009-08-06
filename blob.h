@@ -16,6 +16,7 @@
 typedef struct blob {
     uint32_t size; // size == 0 means end-of-region
     uint32_t key[3];
+    uint64_t hash; // not used yet
     uint8_t num_copies;
     char pad[7 + 8]; // reserved
     char data[];
