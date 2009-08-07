@@ -265,10 +265,10 @@ manager_get_peers(manager mgr, peer_state state, peer *out)
 }
 
 static void
-manager_rebalance_dirent_cb(manager m, uint32_t *key, int error, void *old_node)
+manager_rebalance_dirent_cb(manager m, uint32_t *key, int error, void *ignore)
 {
     if (error == 0) {
-        // TODO send UNLINK to old_node
+        // TODO send UNLINK to old nodes
     } else {
         // Buh.
     }
@@ -283,10 +283,12 @@ manager_rebalance_dirent(manager mgr, dirent de)
             DIRENT_W + 1, owners);
     if (n < 1) return warnx("no active peers");
 
-    if (node_is_remote(owners[0]) &&
-            owners[0]->peer->state == peer_state_in_rebalance) {
-        prot_send_links(mgr, 1, &owners[0]->peer, de,
-                manager_rebalance_dirent_cb, owners[DIRENT_W]);
+    for (int i = 0; i < n; i++) {
+        if (node_is_remote(owners[i]) &&
+                owners[i]->peer->state == peer_state_in_rebalance) {
+            prot_send_links(mgr, 1, &owners[i]->peer, de,
+                    manager_rebalance_dirent_cb, 0);
+        }
     }
 }
 
