@@ -277,10 +277,10 @@ manager_rebalance_dirent_cb(manager m, uint32_t *key, int error, void *ignore)
 static void
 manager_rebalance_dirent(manager mgr, dirent de)
 {
-    node owners[DIRENT_W + 1] = { 0, };
+    node owners[DIRENT_W] = { 0, };
 
     int n = manager_find_closest_active_remote_nodes(mgr, de->key,
-            DIRENT_W + 1, owners);
+            DIRENT_W, owners);
     if (n < 1) return warnx("no active peers");
 
     for (int i = 0; i < n; i++) {
