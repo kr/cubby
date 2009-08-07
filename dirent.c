@@ -19,6 +19,7 @@ make_dirent(uint32_t *key, uint8_t len)
     if (!d) return warn("malloc"), (dirent) 0;
 
     d->len = len;
+    d->num_copies = 0;
     d->key[0] = key[0];
     d->key[1] = key[1];
     d->key[2] = key[2];
