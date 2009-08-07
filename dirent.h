@@ -45,7 +45,8 @@ typedef struct rdesc_remote {
 
 struct dirent {
     uint32_t key[3];
-    char pad0[3];
+    char pad0[2];
+    uint8_t num_copies;
     uint8_t len;
     struct rdesc rdescs[];
 };
