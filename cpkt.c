@@ -332,16 +332,27 @@ make_cpkt_pong(in_addr_t addr, uint16_t port, peer *peers, int len, manager mgr)
 }
 
 cpkt
-make_cpkt_link(uint32_t *key, uint8_t rank)
+make_cpkt_link(dirent de, uint8_t rank)
 {
-    cpkt_link c = (cpkt_link) make_cpkt(CPKT_BASE_SIZE(link));
+    cpkt_link c = (cpkt_link) make_cpkt(CPKT_BASE_SIZE(link) +
+            sizeof(struct cpkt_peer_desc) * de->len);
     if (!c) return warnx("make_cpkt"), (cpkt) 0;
 
     cpkt_set_type((cpkt) c, CPKT_TYPE_CODE_LINK);
-    c->key[0] = key[0];
-    c->key[1] = key[1];
-    c->key[2] = key[2];
+    c->key[0] = de->key[0];
+    c->key[1] = de->key[1];
+    c->key[2] = de->key[2];
     c->rank = rank;
+    for (int i = 0; i < de->len; i++) {
+        rdesc rd = de->rdescs + i;
+        if (rd->flags & RDESC_LOCAL) {
+            c->targets[i].addr = 0; // special value means "sender"
+            c->targets[i].port = 0; // special value means "sender"
+        } else {
+            c->targets[i].addr = rd->b;
+            c->targets[i].port = rd->a;
+        }
+    }
     return (cpkt) c;
 }
 

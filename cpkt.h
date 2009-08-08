@@ -35,7 +35,7 @@ cpkt make_cpkt(uint16_t size);
 cpkt make_cpkt_ping(in_addr_t addr, int cp_port, manager mgr);
 cpkt make_cpkt_pong(in_addr_t addr, uint16_t port, peer *peers, int len,
         manager mgr);
-cpkt make_cpkt_link(uint32_t *key, uint8_t rank);
+cpkt make_cpkt_link(dirent de, uint8_t rank);
 cpkt make_cpkt_linked(uint32_t *key);
 
 cpkt cpkt_check_size(cpkt p, int *len);
