@@ -55,7 +55,8 @@ typedef struct cpkt_link {
     uint8_t pad[11];
 
     uint32_t key[3];
-    uint8_t pad2[4];
+    uint8_t pad2[3];
+    uint8_t rank;
     struct cpkt_peer_desc targets[];
 } *cpkt_link;
 
@@ -331,7 +332,7 @@ make_cpkt_pong(in_addr_t addr, uint16_t port, peer *peers, int len, manager mgr)
 }
 
 cpkt
-make_cpkt_link(uint32_t *key)
+make_cpkt_link(uint32_t *key, uint8_t rank)
 {
     cpkt_link c = (cpkt_link) make_cpkt(CPKT_BASE_SIZE(link));
     if (!c) return warnx("make_cpkt"), (cpkt) 0;
@@ -340,6 +341,7 @@ make_cpkt_link(uint32_t *key)
     c->key[0] = key[0];
     c->key[1] = key[1];
     c->key[2] = key[2];
+    c->rank = rank;
     return (cpkt) c;
 }
 

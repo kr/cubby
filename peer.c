@@ -100,9 +100,9 @@ peer_send_pong(peer p)
 }
 
 void
-peer_send_link(peer p, uint32_t *key)
+peer_send_link(peer p, uint32_t *key, uint8_t rank)
 {
-    cpkt c = make_cpkt_link(key);
+    cpkt c = make_cpkt_link(key, rank);
     if (!c) return warnx("make_cpkt_link");
 
     peer_send(p, c);

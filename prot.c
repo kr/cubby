@@ -48,13 +48,13 @@ prot_outstanding_link_update(arr a, void *item, size_t index)
             if (prog->peers[i].first_at == 0) { // Send the first request
                 prog->peers[i].first_at = now;
                 prog->peers[i].last_at = now;
-                peer_send_link(p, prog->key);
+                peer_send_link(p, prog->key, 0);
             } else if (delta_first > ABANDON_LINK_INTERVAL) {
                 prog->cb(prog->manager, prog->key, 1, prog->data);
                 return 0; // remove it from the list
             } else if (delta_last > RETRY_LINK_INTERVAL) {
                 prog->peers[i].last_at = now;
-                peer_send_link(p, prog->key);
+                peer_send_link(p, prog->key, 0);
             }
             // else do nothing
         }
