@@ -130,7 +130,7 @@ http_handle_blob_put(struct evhttp_request *req, manager mgr)
     // We only allocate space for one rdesc because we probably won't be
     // responsible for this dirent. We're only concerned with blob storage
     // right now.
-    de = make_dirent(k, 1);
+    de = make_dirent(k, 1, 3);
     if (!de) {
         evhttp_send_reply(req, HTTP_INTERNAL_ERROR, "Out of memory", 0);
         return;

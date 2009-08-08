@@ -45,7 +45,8 @@ typedef struct rdesc_remote {
 
 struct dirent {
     uint32_t key[3];
-    char pad0[2];
+    char pad;
+    uint8_t rank;
     uint8_t num_copies;
     uint8_t len;
     struct rdesc rdescs[];
@@ -54,7 +55,7 @@ struct dirent {
 extern dirent invalid_dirent;
 
 /* LEN is the number of rdesc entries to fit in this dirent. */
-dirent make_dirent(uint32_t *key, uint8_t len);
+dirent make_dirent(uint32_t *key, uint8_t len, uint8_t rank);
 
 /* NEW_LEN is the number of rdesc entries to fit in this dirent. */
 dirent copy_dirent(dirent d, uint8_t new_len);
@@ -66,5 +67,8 @@ rdesc_local dirent_get_rdesc_local(dirent d);
 
 int dirent_has_remote(dirent d, in_addr_t addr, uint16_t port);
 int dirent_add_remote(dirent d, in_addr_t addr, uint16_t port);
+
+uint8_t dirent_get_rank(dirent d);
+void dirent_set_rank(dirent d, uint8_t rank);
 
 #endif //dirent_h

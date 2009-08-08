@@ -350,7 +350,7 @@ manager_add_link(manager m, uint32_t *key, peer p)
         if (dirent_has_remote(de, p->addr, p->cp_port)) return 0;
         nde = copy_dirent(de, de->len + 1);
     } else {
-        nde = make_dirent(key, 1);
+        nde = make_dirent(key, 1, 0);
     }
     if (!nde) return -1;
 

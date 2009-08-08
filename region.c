@@ -113,7 +113,7 @@ region_read(region reg, manager mgr, const char *bundle_name)
             continue;
         }
 
-        de = make_dirent(bl->key, 1);
+        de = make_dirent(bl->key, 1, 3);
         rdesc = (rdesc_local) &de->rdescs[0];
         rdesc->flags = RDESC_LOCAL;
         rdesc->reg = reg->id;

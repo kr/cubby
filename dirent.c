@@ -11,7 +11,7 @@ static struct dirent invalid_dirent_s = {};
 dirent invalid_dirent = &invalid_dirent_s;
 
 dirent
-make_dirent(uint32_t *key, uint8_t len)
+make_dirent(uint32_t *key, uint8_t len, uint8_t rank)
 {
     dirent d;
 
@@ -24,6 +24,7 @@ make_dirent(uint32_t *key, uint8_t len)
     d->key[1] = key[1];
     d->key[2] = key[2];
     memset(d->rdescs, 0, sizeof(struct rdesc) * len);
+    dirent_set_rank(d, rank);
 
     return d;
 }
@@ -104,5 +105,20 @@ dirent_add_remote(dirent d, in_addr_t addr, uint16_t port)
         }
     }
     return -1;
+}
+
+uint8_t
+dirent_get_rank(dirent d)
+{
+    if (!d) return 3;
+    return d->rank;
+}
+
+void
+dirent_set_rank(dirent d, uint8_t rank)
+{
+    if (!d) return;
+    if (rank > 3) rank = 3;
+    d->rank = rank;
 }
 
