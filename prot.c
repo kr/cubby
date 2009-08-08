@@ -124,9 +124,13 @@ prot_send_links(manager m, int n, peer *to, dirent de, prot_send_link_fn cb,
 }
 
 void
-prot_send_all_links(manager m, dirent de, prot_send_link_fn cb, void *data)
+prot_send_link(manager m, dirent de, prot_send_link_fn cb, void *data)
 {
-    peer closest[DIRENT_W];
-    int n = manager_find_closest_active_peers(m, de->key, DIRENT_W, closest);
-    prot_send_links(m, n, closest, de, cb, data);
+    peer closest;
+    int n = manager_find_closest_active_peers(m, de->key, 1, &closest);
+
+    // No peers? Pretend like it worked.
+    if (!n) return cb(m, de->key, 0, data);
+
+    prot_send_links(m, n, &closest, de, cb, data);
 }
