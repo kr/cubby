@@ -36,3 +36,27 @@ GET key (maybe with offset and len):
     else:
       proxy the request to one of S
 
+B <- LINK(key=K, targets=T, rank=R) <- A
+
+    if R < NUM_LINKS:
+      R' = our implicit rank
+      if (R' == R):
+        store entry for T under key K at rank R
+        C = next closest node
+        LINK(K, T, R + 1) -> C
+        when LINKED(K) <- C
+          LINKED(K) -> A
+      else if R' > R: xxx
+      else if R' < R: yyy
+    else if we have an entry for K:
+      delete entry under key K
+      C = next closest node
+      LINK(K, T, R + 1) -> C
+      when LINKED(K) <- C
+        LINKED(K) -> A
+    else:
+      LINKED(K) -> A
+
+B <- LINKED(key=K) <- A
+
+    run callbacks
