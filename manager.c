@@ -286,7 +286,7 @@ manager_rebalance_dirent(manager mgr, dirent de)
     for (int i = 0; i < n; i++) {
         if (node_is_remote(owners[i]) &&
                 owners[i]->peer->state == peer_state_in_rebalance) {
-            prot_send_links(mgr, 1, &owners[i]->peer, de,
+            prot_send_links(mgr, 1, &owners[i]->peer, de, i,
                     manager_rebalance_dirent_cb, 0);
         }
     }
