@@ -28,6 +28,8 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 
+typedef int(*test_fn)(void *, void *);
+
 #define CEILDIV(num, den) (1 + (((num) - 1) / (den)))
 
 #define CEILDIVL(num, denexp) (1 + ((num - 1) >> denexp))
@@ -70,6 +72,6 @@ void timeval_from_int(struct timeval *tv, uint64_t t);
 
 void key_for_peer(uint32_t key[3], in_addr_t addr, uint16_t port);
 
-int in_set(void **set, size_t len, void *item);
+int any(size_t len, void **set, test_fn f, void *data);
 
 #endif /*util_h*/

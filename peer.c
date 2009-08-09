@@ -40,6 +40,15 @@ make_peer(manager mgr, in_addr_t addr, int cp_port)
     return p;
 }
 
+peer_id
+make_peer_id(in_addr_t addr, uint16_t port)
+{
+    peer_id id = addr;
+    id <<= 32;
+    id |= port;
+    return id;
+}
+
 static int
 peer_needs_ping(peer p)
 {
@@ -133,3 +142,22 @@ peer_update(peer p)
     }
 
 }
+
+peer_id
+peer_get_id(peer p)
+{
+    return make_peer_id(p->addr, p->cp_port);
+}
+
+in_addr_t
+peer_id_get_addr(peer_id id)
+{
+    return id >> 32;
+}
+
+uint16_t
+peer_id_get_port(peer_id id)
+{
+    return id & 0xffff;
+}
+

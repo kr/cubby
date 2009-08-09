@@ -10,6 +10,8 @@
 
 #include <netinet/in.h>
 
+typedef uint64_t peer_id;
+
 typedef struct peer *peer;
 
 typedef enum peer_states {
@@ -35,6 +37,11 @@ struct peer {
 };
 
 peer make_peer(manager mgr, in_addr_t addr, int cp_port);
+peer_id make_peer_id(in_addr_t addr, uint16_t cp_port);
+
+peer_id peer_get_id(peer p);
+in_addr_t peer_id_get_addr(peer_id id);
+uint16_t peer_id_get_port(peer_id id);
 
 void peer_update(peer p);
 void peer_touch(peer p);

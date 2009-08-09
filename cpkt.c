@@ -234,14 +234,33 @@ cpkt_pong_handle(cpkt cp, peer p)
 }
 
 static void
+cpkt_link_handle_cb(manager m, uint32_t *key, int error, void *p)
+{
+    if (error) return; // just drop it -- the peer can retry if they want
+
+    peer_send_linked(p, key);
+}
+
+static void
 cpkt_link_handle(cpkt generic, peer p)
 {
-    cpkt_link c = (cpkt_link) cpkt_check_size(generic, 0);
+    int len;
+    cpkt_link c = (cpkt_link) cpkt_check_size(generic, &len);
+    if (!c) return warnx("%p is not a link packet", generic);
+    peer_id ids[len];
 
-    int r = manager_add_link(p->manager, c->key, p);
-    if (r == -1) return; // just drop it -- the peer can retry if they want
+    for (int i = 0; i < len; i++) {
+        in_addr_t addr = c->targets[i].addr;
+        uint16_t port = c->targets[i].port;
 
-    peer_send_linked(p, c->key);
+        // If addr or port are zero, it means the sender.
+        if (!addr) addr = p->addr;
+        if (!port) port = p->cp_port;
+
+        ids[i] = make_peer_id(addr, port);
+    }
+
+    prot_link(p->manager, c->key, len, ids, c->rank, cpkt_link_handle_cb, p);
 }
 
 static void

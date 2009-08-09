@@ -134,3 +134,53 @@ prot_send_link(manager m, dirent de, prot_send_link_fn cb, void *data)
 
     prot_send_links(m, n, &closest, de, 0, cb, data);
 }
+
+/* This is the meat of the distributed linking algorithm. */
+void
+prot_link(manager m, uint32_t *key, int len, peer_id *peer_ids, uint8_t rank,
+        prot_link_fn cb, void *data)
+{
+    dirent de;
+    if (rank < DIRENT_W) {
+        node nodes[rank + 2];
+        int n = manager_find_owners(m, key, rank + 2, nodes);
+
+        // Oops, they claim we have rank rank, but we don't even know that many
+        // distinct nodes. We must be missing some nodes.
+        if (n < rank + 1) {
+          // TODO something useful
+          return cb(m, key, 3, data);
+        }
+
+        // We seem to disagree about our proper rank.
+        if (!node_is_local(nodes[rank])) {
+          // TODO something useful
+          return cb(m, key, 2, data);
+        }
+
+        node next = nodes[rank + 1];
+
+        // store entry for T under key K at rank R
+        de = manager_add_links(m, key, len, peer_ids);
+        if (!de) return cb(m, key, 1, data);
+
+        dirent_set_rank(de, rank);
+
+        // No more nodes? We are last in the known order of succession.
+        if (n < rank + 2) return cb(m, key, 0, data);
+
+        // LINK(K, T, R + 1) -> C
+        // when LINKED(K) <- C
+        //   LINKED(K) -> A
+        // Pass our continuation directly to this tail call.
+        prot_send_links(m, 1, &next->peer, de, rank + 1, cb, data);
+    } else if ((de = spht_get(m->directory, key))) {
+        // delete entry under key K
+        // C = next closest node
+        // LINK(K, T, R + 1) -> C
+        // when LINKED(K) <- C
+        // LINKED(K) -> A
+    } else {
+        return cb(m, key, 0, data);
+    }
+}

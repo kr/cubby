@@ -127,10 +127,10 @@ key_for_peer(uint32_t *key, in_addr_t addr, uint16_t port)
 }
 
 int
-in_set(void **set, size_t len, void *item)
+any(size_t len, void **set, test_fn f, void *data)
 {
     for (int i = 0; i < len; i++) {
-        if (set[i] == item) return 1;
+        if (f(set[i], data)) return 1;
     }
     return 0;
 }
