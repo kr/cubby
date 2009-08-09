@@ -56,3 +56,11 @@ node_free(node n)
 {
     free(n);
 }
+
+/* Return 1 if the nodes both refer to the local process, or both refer to the
+   same peer, and 0 otherwise. */
+int
+nodes_are_congruent(node a, node b)
+{
+    return a->peer == b->peer;
+}

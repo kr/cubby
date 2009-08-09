@@ -29,5 +29,6 @@ int node_is_local(node n);
 int node_is_remote(node n);
 int node_is_active(node n);
 void node_free(node n);
+int nodes_are_congruent(node a, node b);
 
 #endif //node_h
