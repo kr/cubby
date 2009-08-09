@@ -25,6 +25,7 @@ typedef struct manager *manager;
    modules. */
 struct manager {
     uint32_t key[3]; // Our own id
+    uint32_t key_chain_len;
 
     struct bundle *all_bundles;
     int nbundles;

@@ -61,36 +61,10 @@ bundle_get_region_storage(bundle b, uint16_t i)
     return (region_storage) (b->storage->regions + off);
 }
 
-int
-bundle_make_root_key(uint32_t *key)
-{
-    char *buf = (char *) key;
-
-    int fd = open("/dev/urandom", O_RDONLY);
-    if (fd == -1) return warn("open(/dev/urandom)"), -1;
-
-    int n = 0;
-    while (n < 12) {
-        int r = read(fd, buf + n, 12 - n);
-        if (r == -1) return warn("read"), -1;
-        n += r;
-    }
-
-    for (int r = -1; r == -1; ) {
-        r = close(fd);
-        if (r == -1) {
-            if (errno == EBADF) return 0;
-            if (errno == EIO) return -1;
-        }
-    }
-    return 0;
-}
-
-static int
+static void
 bundle_init(bundle b)
 {
     uint16_t i;
-    int r;
 
     memset(b->storage, 0, sizeof(struct bundle_storage));
 
@@ -104,12 +78,8 @@ bundle_init(bundle b)
     // write bundle header
     b->storage->magic = BUNDLE_MAGIC;
     b->storage->version = BUNDLE_VERSION;
-    r = bundle_make_root_key(b->storage->root_key);
-    if (r == -1) return warnx("could not make root key for %s", b->name), -1;
 
     bundle_sync(b, 1);
-
-    return 0;
 }
 
 int
@@ -133,7 +103,6 @@ bundle_open(bundle b)
 
     b->reg_size = b->tot_size - sizeof(struct bundle_storage);
     b->nregions = ((b->reg_size - 1) >> REGION_BITS) + 1;
-    b->key_chain_len = b->reg_size / BUNDLE_OVERLAY_NODE_SIZE;
 
     b->storage = mmap(0, b->tot_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
     if (b->storage == MAP_FAILED) {
@@ -155,8 +124,7 @@ bundle_open(bundle b)
             return warnx("bundle magic number mismatch"), -1;
         }
 
-        r = bundle_init(b);
-        if (r == -1) return warnx("failed to init"), -1;
+        bundle_init(b);
     }
     if (b->storage->version != BUNDLE_VERSION) {
         munmap(b->storage, b->tot_size);

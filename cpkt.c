@@ -10,23 +10,18 @@
 #include "sha512.h"
 #include "util.h"
 
-typedef struct cpkt_root_key_desc {
-    uint32_t key[3];
-    uint16_t chain_len;
-    uint16_t pad; // reserved
-} *cpkt_root_key_desc;
-
 typedef struct cpkt_ping {
     CPKT_COMMON;
 
     // Bytes from the network
     uint8_t type;
-    uint8_t pad[9];
+    uint8_t pad[7];
+
     uint16_t memcache_port;
     uint16_t http_port;
-    uint16_t root_key_count;
-
-    struct cpkt_root_key_desc root_keys[];
+    uint32_t root_key[3];
+    uint16_t chain_len;
+    uint8_t pad2[6];
 } *cpkt_ping;
 
 typedef struct cpkt_peer_desc {
@@ -43,8 +38,10 @@ typedef struct cpkt_pong {
     uint8_t type;
     uint8_t pad[7];
 
+    uint32_t root_key[3];
+    uint16_t chain_len;
+    uint8_t pad2[2];
     struct cpkt_peer_desc peers[PONG_PEER_MAX];
-    struct cpkt_root_key_desc root_keys[];
 } *cpkt_pong;
 
 typedef struct cpkt_link {
@@ -52,7 +49,7 @@ typedef struct cpkt_link {
 
     // Bytes from the network
     uint8_t type;
-    uint8_t pad[11];
+    uint8_t pad[7];
 
     uint32_t key[3];
     uint8_t pad2[3];
@@ -65,9 +62,10 @@ typedef struct cpkt_linked {
 
     // Bytes from the network
     uint8_t type;
-    uint8_t pad[11];
+    uint8_t pad[7];
 
     uint32_t key[3];
+    uint8_t pad2[4];
 } *cpkt_linked;
 
 typedef void(*cpkt_handle_fn)(cpkt, peer);
@@ -192,20 +190,16 @@ cpkt_next_key(uint32_t *prev)
 }
 
 static void
-cpkt_add_nodes(peer p, struct cpkt_root_key_desc root_keys[], int len)
+cpkt_add_nodes(peer p, uint32_t *key, uint16_t chain_len)
 {
     manager mgr = p->manager;
-    for (int i = 0; i < len; i++) {
-        cpkt_root_key_desc rkd = root_keys + i;
-        uint32_t *key = rkd->key;
-        for (int j = 0; j < rkd->chain_len; j++, key = cpkt_next_key(key)) {
-            node n = make_node_remote(key, p);
-            if (!n) {
-                warn("make_node_remote");
-                continue;
-            }
-            manager_add_node(mgr, n);
+    for (int i = 0; i < chain_len; i++, key = cpkt_next_key(key)) {
+        node n = make_node_remote(key, p);
+        if (!n) {
+            warn("make_node_remote");
+            continue;
         }
+        manager_add_node(mgr, n);
     }
 }
 
@@ -213,12 +207,11 @@ cpkt_add_nodes(peer p, struct cpkt_root_key_desc root_keys[], int len)
 static void
 cpkt_ping_handle(cpkt cp, peer p)
 {
-    int len;
-    cpkt_ping cp_ping = (cpkt_ping) cpkt_check_size(cp, &len);
+    cpkt_ping cp_ping = (cpkt_ping) cpkt_check_size(cp, 0);
 
     if (!cp_ping) return warnx("cp %p is not a ping packet", cp);
 
-    cpkt_add_nodes(p, cp_ping->root_keys, len);
+    cpkt_add_nodes(p, cp_ping->root_key, cp_ping->chain_len);
 
     peer_send_pong(p);
 }
@@ -226,11 +219,10 @@ cpkt_ping_handle(cpkt cp, peer p)
 static void
 cpkt_pong_handle(cpkt cp, peer p)
 {
-    int len;
-    cpkt_pong cp_pong = (cpkt_pong) cpkt_check_size(cp, &len);
+    cpkt_pong cp_pong = (cpkt_pong) cpkt_check_size(cp, 0);
     if (!cp_pong) return warnx("cp %p is not a pong packet", cp);
 
-    cpkt_add_nodes(p, cp_pong->root_keys, len);
+    cpkt_add_nodes(p, cp_pong->root_key, cp_pong->chain_len);
 }
 
 static void
@@ -309,43 +301,36 @@ make_cpkt(uint16_t size)
 cpkt
 make_cpkt_ping(in_addr_t addr, int cp_port, manager mgr)
 {
-    cpkt_ping cp = (cpkt_ping) make_cpkt(CPKT_BASE_SIZE(ping) +
-            sizeof(struct cpkt_root_key_desc) * mgr->nbundles);
+    cpkt_ping cp = (cpkt_ping) make_cpkt(CPKT_BASE_SIZE(ping));
     if (!cp) return warnx("make_cpkt"), (cpkt) 0;
 
     cpkt_set_type((cpkt) cp, CPKT_TYPE_CODE_PING);
 
     cp->memcache_port = mgr->memcache_port;
     cp->http_port = mgr->http_port;
-    cp->root_key_count = mgr->nbundles;
-    for (int i = 0; i < mgr->nbundles; i++) {
-        cp->root_keys[i].key[0] = mgr->all_bundles[i].storage->root_key[0];
-        cp->root_keys[i].key[1] = mgr->all_bundles[i].storage->root_key[0];
-        cp->root_keys[i].key[2] = mgr->all_bundles[i].storage->root_key[2];
-        cp->root_keys[i].chain_len = mgr->all_bundles[i].key_chain_len;
-    }
+    cp->root_key[0] = mgr->key[0];
+    cp->root_key[1] = mgr->key[1];
+    cp->root_key[2] = mgr->key[2];
+    cp->chain_len = mgr->key_chain_len;
     return (cpkt) cp;
 }
 
 cpkt
 make_cpkt_pong(in_addr_t addr, uint16_t port, peer *peers, int len, manager mgr)
 {
-    cpkt_pong cp = (cpkt_pong) make_cpkt(CPKT_BASE_SIZE(pong) +
-            sizeof(struct cpkt_root_key_desc) * mgr->nbundles);
+    cpkt_pong cp = (cpkt_pong) make_cpkt(CPKT_BASE_SIZE(pong));
     if (!cp) return warnx("make_cpkt"), (cpkt) 0;
 
     cpkt_set_type((cpkt) cp, CPKT_TYPE_CODE_PONG);
 
     if (len > PONG_PEER_MAX) len = PONG_PEER_MAX;
+    cp->root_key[0] = mgr->key[0];
+    cp->root_key[1] = mgr->key[1];
+    cp->root_key[2] = mgr->key[2];
+    cp->chain_len = mgr->key_chain_len;
     for (int i = 0; i < len; i++) {
         cp->peers[i].addr = peers[i]->addr;
         cp->peers[i].port = peers[i]->cp_port;
-    }
-    for (int i = 0; i < mgr->nbundles; i++) {
-        cp->root_keys[i].key[0] = mgr->all_bundles[i].storage->root_key[0];
-        cp->root_keys[i].key[1] = mgr->all_bundles[i].storage->root_key[0];
-        cp->root_keys[i].key[2] = mgr->all_bundles[i].storage->root_key[2];
-        cp->root_keys[i].chain_len = mgr->all_bundles[i].key_chain_len;
     }
     return (cpkt) cp;
 }
