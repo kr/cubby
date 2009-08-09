@@ -2,8 +2,8 @@
 
 #include "node.h"
 
-static node
-make_node(uint32_t *key, bundle b, peer p)
+node
+make_node(uint32_t *key, peer p)
 {
     if (!key) return 0;
 
@@ -13,36 +13,22 @@ make_node(uint32_t *key, bundle b, peer p)
     n->key[0] = key[0];
     n->key[1] = key[1];
     n->key[2] = key[2];
-    n->bundle = b;
+    n->is_local = !p;
     n->peer = p;
 
     return n;
 }
 
-node
-make_node_local(uint32_t *key, bundle b)
-{
-    if (!b) return 0;
-    return make_node(key, b, 0);
-}
-
-node
-make_node_remote(uint32_t *key, peer p)
-{
-    if (!p) return 0;
-    return make_node(key, 0, p);
-}
-
 int
 node_is_local(node n)
 {
-    return !!n->bundle;
+    return !!n->is_local;
 }
 
 int
 node_is_remote(node n)
 {
-    return !!n->peer;
+    return !node_is_local(n);
 }
 
 int

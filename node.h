@@ -15,15 +15,13 @@ typedef struct node *node;
 
 struct node {
     uint32_t key[3];
-    char pad[4];
+    char pad[3];
+    char is_local;
 
-    // Exactly one of these should be non-null.
-    bundle bundle;
     peer peer;
 };
 
-node make_node_local(uint32_t *key, bundle b);
-node make_node_remote(uint32_t *key, peer p);
+node make_node(uint32_t *key, peer p);
 
 int node_is_local(node n);
 int node_is_remote(node n);

@@ -101,7 +101,7 @@ int manager_find_owners(manager m, uint32_t *key, int n, node *out);
 dirent manager_add_links(manager m, uint32_t *key, uint8_t rank,
         int len, peer_id *peer_ids);
 
-int manager_add_node(manager mgr, node n);
+int manager_merge_node(manager mgr, uint32_t *key, peer p);
 
 void manager_rebalance_work(manager mgr);
 

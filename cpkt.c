@@ -192,14 +192,8 @@ cpkt_next_key(uint32_t *prev)
 static void
 cpkt_add_nodes(peer p, uint32_t *key, uint16_t chain_len)
 {
-    manager mgr = p->manager;
     for (int i = 0; i < chain_len; i++, key = cpkt_next_key(key)) {
-        node n = make_node_remote(key, p);
-        if (!n) {
-            warn("make_node_remote");
-            continue;
-        }
-        manager_add_node(mgr, n);
+        manager_merge_node(p->manager, key, p);
     }
 }
 

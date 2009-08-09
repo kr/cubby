@@ -423,8 +423,20 @@ manager_add_links(manager m, uint32_t *key, uint8_t rank,
 }
 
 int
-manager_add_node(manager mgr, node n)
+manager_merge_node(manager mgr, uint32_t *key, peer p)
 {
+    for (size_t i = 0; i < mgr->nodes.used; i++) {
+        node n = mgr->nodes.items[i];
+        if (n->key == key) {
+            if (n->peer && n->peer != p) {
+                warnx("node conflict %s -> %d:%d & %d:%d");
+            }
+            n->peer = p;
+            return 0;
+        }
+    }
+
+    node n = make_node(key, p);
     int r = arr_append(&mgr->nodes, n);
     if (r != 1) return warnx("arr_append"), -1;
     return 0;
