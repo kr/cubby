@@ -40,7 +40,7 @@ typedef struct cpkt_pong {
     uint32_t root_key[3];
     uint16_t chain_len;
     uint8_t pad2[2];
-    struct cpkt_peer_desc peers[PONG_PEER_MAX];
+    struct cpkt_peer_desc peers[];
 } *cpkt_pong;
 
 typedef struct cpkt_link {
@@ -105,8 +105,8 @@ enum cpkt_type_codes {
 
 static struct cpkt_type types[KNOWN_CPKT_TYPE_CODES] = {
     CPKT_TYPE(ping, 0),
-    CPKT_TYPE(pong, 0),
-    CPKT_TYPE(link, 0),
+    CPKT_TYPE(pong, sizeof(struct cpkt_peer_desc)),
+    CPKT_TYPE(link, sizeof(struct cpkt_peer_desc)),
     CPKT_TYPE(linked, 0),
 };
 
