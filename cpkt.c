@@ -199,6 +199,10 @@ cpkt_pong_handle(cpkt generic, peer p)
     if (!c) return warnx("generic %p is not a pong packet", generic);
 
     manager_merge_nodes(p->manager, c->chain_len, c->root_key, p);
+
+    for (int i = 0; i < len; i++) {
+        manager_get_peer(p->manager, c->peers[i].addr, c->peers[i].port);
+    }
 }
 
 static void
