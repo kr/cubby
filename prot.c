@@ -42,7 +42,7 @@ prot_outstanding_link_update(arr a, void *item, size_t index)
     for (int i = 0; i < DIRENT_W; i++) {
         peer p = prog->peers[i].peer;
         if (p) {
-            int64_t now = now_usec();
+            int64_t now = p->manager->slice_start;
             int64_t delta_last = now - prog->peers[i].last_at;
             int64_t delta_first = now - prog->peers[i].first_at;
 
@@ -83,6 +83,7 @@ prot_linked(peer p, uint32_t *key)
 void
 prot_work(manager mgr)
 {
+    mgr->slice_start = now_usec();
     for (int i = 0; i < mgr->peers_fill; i++) {
         peer_update(mgr->peers[i]);
     }

@@ -54,6 +54,8 @@ struct manager {
         size_t cap_check;
         int in_progress;
     } cursor;
+
+    uint64_t slice_start;
 };
 
 int manager_init(manager m);

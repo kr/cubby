@@ -52,7 +52,7 @@ make_peer_id(in_addr_t addr, uint16_t port)
 static int
 peer_needs_ping(peer p)
 {
-    int64_t now = now_usec();
+    int64_t now = p->manager->slice_start;
     int64_t delta_to = now - p->last_message_to;
     int64_t delta_from = now - p->last_message_from;
 
@@ -62,7 +62,7 @@ peer_needs_ping(peer p)
 int
 peer_active(peer p)
 {
-    int64_t now = now_usec();
+    int64_t now = p->manager->slice_start;
     int64_t delta_from = now - p->last_message_from;
 
     return delta_from < ACTIVE_INTERVAL;
@@ -81,7 +81,7 @@ void
 peer_touch(peer p)
 {
     if (!p) return;
-    p->last_message_from = now_usec();
+    p->last_message_from = p->manager->slice_start;
 }
 
 static void
