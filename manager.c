@@ -5,6 +5,7 @@
 #include "prot.h"
 #include "node.h"
 #include "key.h"
+#include "sha512.h"
 #include "util.h"
 
 void
@@ -131,6 +132,25 @@ manager_node_onremove(arr a, void *item, size_t index)
     return 0; // ignored
 }
 
+/* This function uses privately allocated static memory. Caution is advised. */
+static uint32_t *
+manager_next_key(uint32_t *prev)
+{
+    static uint32_t next[3];
+
+    sha512((char *) prev, 12, next, 12);
+    return next;
+}
+
+/* p may be null to indicate local nodes */
+void
+manager_merge_nodes(manager m, uint16_t chain_len, uint32_t *key, peer p)
+{
+    for (int i = 0; i < chain_len; i++, key = manager_next_key(key)) {
+        manager_merge_node(m, key, p);
+    }
+}
+
 int
 manager_init(manager m)
 {
@@ -158,6 +178,9 @@ manager_init(manager m)
         nregions += b->nregions;
         m->key_chain_len += b->reg_size / BUNDLE_OVERLAY_NODE_SIZE;
     }
+
+    // Make local nodes for our keys
+    manager_merge_nodes(m, m->key_chain_len, m->key, 0);
 
     if (nregions < 1) return warnx("no valid regions"), -2;
 
@@ -422,16 +445,21 @@ manager_add_links(manager m, uint32_t *key, uint8_t rank,
     return nde;
 }
 
+/* p may be null to indicate a local node */
 int
 manager_merge_node(manager mgr, uint32_t *key, peer p)
 {
     for (size_t i = 0; i < mgr->nodes.used; i++) {
         node n = mgr->nodes.items[i];
         if (n->key == key) {
-            if (n->peer && n->peer != p) {
-                warnx("node conflict %s -> %d:%d & %d:%d");
+            if (p) {
+                if (n->peer && n->peer != p) {
+                    warnx("node conflict %s -> %d:%d & %d:%d");
+                }
+                n->peer = p;
+            } else {
+                n->is_local = 1;
             }
-            n->peer = p;
             return 0;
         }
     }

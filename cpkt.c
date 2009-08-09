@@ -7,7 +7,6 @@
 #include "cpkt.h"
 #include "prot.h"
 #include "peer.h"
-#include "sha512.h"
 #include "util.h"
 
 typedef struct cpkt_ping {
@@ -179,24 +178,6 @@ cpkt_check_size(cpkt p, int *len)
     return p;
 }
 
-/* This function uses privately allocated static memory. Caution is advised. */
-static uint32_t *
-cpkt_next_key(uint32_t *prev)
-{
-    static uint32_t next[3];
-
-    sha512((char *) prev, 12, next, 12);
-    return next;
-}
-
-static void
-cpkt_add_nodes(peer p, uint32_t *key, uint16_t chain_len)
-{
-    for (int i = 0; i < chain_len; i++, key = cpkt_next_key(key)) {
-        manager_merge_node(p->manager, key, p);
-    }
-}
-
 // Assumes correct type.
 static void
 cpkt_ping_handle(cpkt cp, peer p)
@@ -205,7 +186,7 @@ cpkt_ping_handle(cpkt cp, peer p)
 
     if (!cp_ping) return warnx("cp %p is not a ping packet", cp);
 
-    cpkt_add_nodes(p, cp_ping->root_key, cp_ping->chain_len);
+    manager_merge_nodes(p->manager, cp_ping->chain_len, cp_ping->root_key, p);
 
     peer_send_pong(p);
 }
@@ -216,7 +197,7 @@ cpkt_pong_handle(cpkt cp, peer p)
     cpkt_pong cp_pong = (cpkt_pong) cpkt_check_size(cp, 0);
     if (!cp_pong) return warnx("cp %p is not a pong packet", cp);
 
-    cpkt_add_nodes(p, cp_pong->root_key, cp_pong->chain_len);
+    manager_merge_nodes(p->manager, cp_pong->chain_len, cp_pong->root_key, p);
 }
 
 static void

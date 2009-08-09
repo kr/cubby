@@ -101,7 +101,12 @@ int manager_find_owners(manager m, uint32_t *key, int n, node *out);
 dirent manager_add_links(manager m, uint32_t *key, uint8_t rank,
         int len, peer_id *peer_ids);
 
-int manager_merge_node(manager mgr, uint32_t *key, peer p);
+/* p may be null to indicate a local node */
+int manager_merge_node(manager m, uint32_t *key, peer p);
+
+/* p may be null to indicate local nodes */
+void manager_merge_nodes(manager m, uint16_t chain_len, uint32_t *root_key,
+        peer p);
 
 void manager_rebalance_work(manager mgr);
 
