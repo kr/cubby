@@ -161,10 +161,8 @@ prot_link(manager m, uint32_t *key, int len, peer_id *peer_ids, uint8_t rank,
         node next = nodes[rank + 1];
 
         // store entry for T under key K at rank R
-        de = manager_add_links(m, key, len, peer_ids);
+        de = manager_add_links(m, key, rank, len, peer_ids);
         if (!de) return cb(m, key, 1, data);
-
-        dirent_set_rank(de, rank);
 
         // No more nodes? We are last in the known order of succession.
         if (n < rank + 2) return cb(m, key, 0, data);

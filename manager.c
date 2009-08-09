@@ -378,34 +378,47 @@ manager_find_closest_active_peers(manager m, uint32_t *key, int n, peer *out)
 }
 
 dirent
-manager_add_links(manager m, uint32_t *key, int len, peer_id *peer_ids)
+manager_add_links(manager m, uint32_t *key, uint8_t rank,
+        int len, peer_id *peer_ids)
 {
     return 0;
-}
 
-int
-manager_add_link(manager m, uint32_t *key, peer p)
-{
-    int r;
+    int r, new_len = 0;
+    peer_id x[len], *new_ids = 0;
     dirent nde, de = spht_get(m->directory, key);
 
     if (de) {
-        if (dirent_has_remote(de, p->addr, p->cp_port)) return 0;
-        nde = copy_dirent(de, de->len + 1);
-    } else {
-        nde = make_dirent(key, 1, 0);
-    }
-    if (!nde) return -1;
+        new_ids = x;
 
-    r = dirent_add_remote(nde, p->addr, p->cp_port);
-    if (r == -1) return free(nde), -1; // can't happen
+        for (int i = 0; i < len; i++) {
+            if (dirent_has_remote(de,
+                        peer_id_get_addr(peer_ids[i]),
+                        peer_id_get_port(peer_ids[i]))) continue;
+            new_ids[new_len++] = peer_ids[i];
+        }
+
+        dirent_set_rank(de, rank);
+        nde = copy_dirent(de, de->len + new_len);
+    } else {
+        nde = make_dirent(key, len, rank);
+        new_len = len;
+        new_ids = peer_ids;
+    }
+
+    if (!nde) return 0;
+
+    for (int i = 0; i < new_len; i++) {
+      r = dirent_add_remote(nde, peer_id_get_addr(new_ids[i]),
+              peer_id_get_port(new_ids[i]));
+      if (r == -1) return free(nde), (dirent) 0; // can't happen
+    }
 
     r = spht_set(m->directory, nde);
-    if (r == -1) return free(nde), -1;
+    if (r == -1) return free(nde), (dirent) 0;
 
     free(de);
 
-    return 0;
+    return nde;
 }
 
 int
