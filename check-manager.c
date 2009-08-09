@@ -170,7 +170,7 @@ __CUT__manager_with_regions_allocate_lots()
     uint32_t key[3] = {};
     dirent de;
 
-    de = make_dirent(key, 1);
+    de = make_dirent(key, 1, 0);
 
     b = manager_allocate_blob(&mgr, de, 50);
     ASSERT(b, "");

@@ -28,7 +28,7 @@ __CUT_TAKEDOWN__null_dirent()
 void
 __CUT_BRINGUP__stored_dirent()
 {
-    d0 = make_dirent(k0, 0);
+    d0 = make_dirent(k0, 0, 0);
     ASSERT(!!d0, "Just trying to allocate here");
 }
 

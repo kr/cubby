@@ -48,17 +48,17 @@ __CUT_BRINGUP__empty_spht()
 {
     h = make_spht(3);
     ASSERT(!!h, "Just trying to allocate here");
-    dr0 = make_dirent(k0, 0);
+    dr0 = make_dirent(k0, 0, 0);
     ASSERT(!!dr0, "Just trying to allocate here");
-    dr1 = make_dirent(k1, 0);
+    dr1 = make_dirent(k1, 0, 0);
     ASSERT(!!dr1, "Just trying to allocate here");
-    dr2 = make_dirent(k2, 0);
+    dr2 = make_dirent(k2, 0, 0);
     ASSERT(!!dr1, "Just trying to allocate here");
-    dr3 = make_dirent(k3, 0);
+    dr3 = make_dirent(k3, 0, 0);
     ASSERT(!!dr1, "Just trying to allocate here");
-    dr4 = make_dirent(k4, 0);
+    dr4 = make_dirent(k4, 0, 0);
     ASSERT(!!dr1, "Just trying to allocate here");
-    dr5 = make_dirent(k5, 0);
+    dr5 = make_dirent(k5, 0, 0);
     ASSERT(!!dr1, "Just trying to allocate here");
 }
 
@@ -115,17 +115,17 @@ __CUT_BRINGUP__full_spht()
     h = make_spht(3);
     ASSERT(!!h, "Just trying to allocate here");
 
-    dr0 = make_dirent(k0, 0);
+    dr0 = make_dirent(k0, 0, 0);
     ASSERT(!!dr0, "Just trying to allocate here");
-    dr1 = make_dirent(k1, 0);
+    dr1 = make_dirent(k1, 0, 0);
     ASSERT(!!dr1, "Just trying to allocate here");
-    dr2 = make_dirent(k2, 0);
+    dr2 = make_dirent(k2, 0, 0);
     ASSERT(!!dr1, "Just trying to allocate here");
-    dr3 = make_dirent(k3, 0);
+    dr3 = make_dirent(k3, 0, 0);
     ASSERT(!!dr1, "Just trying to allocate here");
-    dr4 = make_dirent(k4, 0);
+    dr4 = make_dirent(k4, 0, 0);
     ASSERT(!!dr1, "Just trying to allocate here");
-    dr5 = make_dirent(k5, 0);
+    dr5 = make_dirent(k5, 0, 0);
     ASSERT(!!dr1, "Just trying to allocate here");
 
     r = spht_set(h, dr0);
