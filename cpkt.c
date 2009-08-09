@@ -180,24 +180,25 @@ cpkt_check_size(cpkt p, int *len)
 
 // Assumes correct type.
 static void
-cpkt_ping_handle(cpkt cp, peer p)
+cpkt_ping_handle(cpkt generic, peer p)
 {
-    cpkt_ping cp_ping = (cpkt_ping) cpkt_check_size(cp, 0);
+    cpkt_ping c = (cpkt_ping) cpkt_check_size(generic, 0);
 
-    if (!cp_ping) return warnx("cp %p is not a ping packet", cp);
+    if (!c) return warnx("generic %p is not a ping packet", generic);
 
-    manager_merge_nodes(p->manager, cp_ping->chain_len, cp_ping->root_key, p);
+    manager_merge_nodes(p->manager, c->chain_len, c->root_key, p);
 
     peer_send_pong(p);
 }
 
 static void
-cpkt_pong_handle(cpkt cp, peer p)
+cpkt_pong_handle(cpkt generic, peer p)
 {
-    cpkt_pong cp_pong = (cpkt_pong) cpkt_check_size(cp, 0);
-    if (!cp_pong) return warnx("cp %p is not a pong packet", cp);
+    int len;
+    cpkt_pong c = (cpkt_pong) cpkt_check_size(generic, &len);
+    if (!c) return warnx("generic %p is not a pong packet", generic);
 
-    manager_merge_nodes(p->manager, cp_pong->chain_len, cp_pong->root_key, p);
+    manager_merge_nodes(p->manager, c->chain_len, c->root_key, p);
 }
 
 static void
