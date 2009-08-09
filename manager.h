@@ -18,6 +18,7 @@ typedef struct manager *manager;
 #include "peer.h"
 #include "node.h"
 #include "cpkt.h"
+#include "util.h"
 
 /* This is sort of a dumping ground for all the global state. This is slightly
    better than just having static global vars scattered around the various
@@ -55,7 +56,7 @@ struct manager {
         int in_progress;
     } cursor;
 
-    uint64_t slice_start;
+    usec slice_start;
 };
 
 int manager_init(manager m);

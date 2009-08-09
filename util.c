@@ -89,20 +89,20 @@ startswith(const char *haystack, const char *needle)
     }
 }
 
-uint64_t
-int_from_timeval(struct timeval *tv)
+usec
+usec_from_timeval(struct timeval *tv)
 {
-    return ((uint64_t) tv->tv_sec) * SECOND + tv->tv_usec;
+    return ((usec) tv->tv_sec) * SECOND + tv->tv_usec;
 }
 
 void
-timeval_from_int(struct timeval *tv, uint64_t t)
+timeval_from_usec(struct timeval *tv, usec t)
 {
     tv->tv_sec = t / SECOND;
     tv->tv_usec = t % SECOND;
 }
 
-uint64_t
+usec
 now_usec(void)
 {
     int r;
@@ -111,7 +111,7 @@ now_usec(void)
     r = gettimeofday(&tv, 0);
     if (r != 0) return warnx("gettimeofday"), -1; // can't happen
 
-    return int_from_timeval(&tv);
+    return usec_from_timeval(&tv);
 }
 
 /* Expects ADDR and PORT to be in network order (big-endian). */

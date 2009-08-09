@@ -474,7 +474,7 @@ manager_rebalance_work(manager mgr)
     int recovery_peer_count = manager_get_peers(mgr, peer_state_in_recovery,
             recovery_peers);
 
-    uint64_t start = now_usec();
+    usec start = now_usec();
     size_t i;
     for (i = mgr->cursor.pos; i < mgr->directory->table->cap; i++) {
         // TODO: performance optimization: avoid so many syscalls; only check

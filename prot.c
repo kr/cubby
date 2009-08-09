@@ -17,8 +17,8 @@ typedef struct link_progress {
 
     struct {
         peer peer;
-        uint64_t first_at;
-        uint64_t last_at;
+        usec first_at;
+        usec last_at;
     } peers[DIRENT_W];
 } *link_progress;
 
@@ -42,9 +42,9 @@ prot_outstanding_link_update(arr a, void *item, size_t index)
     for (int i = 0; i < DIRENT_W; i++) {
         peer p = prog->peers[i].peer;
         if (p) {
-            int64_t now = p->manager->slice_start;
-            int64_t delta_last = now - prog->peers[i].last_at;
-            int64_t delta_first = now - prog->peers[i].first_at;
+            usec now = p->manager->slice_start;
+            usec delta_last = now - prog->peers[i].last_at;
+            usec delta_first = now - prog->peers[i].first_at;
 
             if (prog->peers[i].first_at == 0) { // Send the first request
                 prog->peers[i].first_at = now;

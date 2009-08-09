@@ -41,6 +41,7 @@ typedef int(*test_fn)(void *, void *);
 #define min(a,b) ((a)<(b)?(a):(b))
 
 // All times are in usec.
+typedef uint64_t usec;
 #define USEC (1)
 #define MSEC (1000 * USEC)
 #define SECOND (1000 * MSEC)
@@ -66,9 +67,9 @@ extern int util_id;
 #define errx(eval, fmt, args...) raw_errx(eval, "%s:%d in %s: " fmt, \
                                           __FILE__, __LINE__, __func__, ##args)
 
-uint64_t now_usec(void);
-uint64_t int_from_timeval(struct timeval *tv);
-void timeval_from_int(struct timeval *tv, uint64_t t);
+usec now_usec(void);
+usec usec_from_timeval(struct timeval *tv);
+void timeval_from_usec(struct timeval *tv, usec t);
 
 void key_for_peer(uint32_t key[3], in_addr_t addr, uint16_t port);
 
