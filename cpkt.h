@@ -15,8 +15,6 @@ typedef struct cpkt *cpkt;
 #include "manager.h"
 #include "peer.h"
 
-#define PONG_PEER_MAX 10
-
 struct cpkt {
 #define CPKT_COMMON \
     cpkt next; \

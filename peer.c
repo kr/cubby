@@ -20,6 +20,9 @@
 // ping.
 #define REPING_INTERVAL (1 * SECOND)
 
+// Send at most this many peers in a pong message.
+#define PONG_PEER_MAX 10
+
 peer
 make_peer(manager mgr, in_addr_t addr, int cp_port)
 {
@@ -101,7 +104,8 @@ peer_send_pong(peer p)
 
     if (!p) return;
 
-    int n = manager_find_closest_active_peers(m, m->key, PONG_PEER_MAX, closest);
+    int n = manager_find_closest_active_peers(m, m->key, PONG_PEER_MAX,
+            closest);
     cpkt pkt = make_cpkt_pong(0, 0, closest, n, m);
     if (!pkt) return warnx("make_cpkt_pong");
 
