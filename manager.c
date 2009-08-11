@@ -142,7 +142,6 @@ manager_next_key(uint32_t *prev)
     return next;
 }
 
-/* p may be null to indicate local nodes */
 void
 manager_merge_nodes(manager m, uint16_t chain_len, uint32_t *key, peer p)
 {
@@ -180,7 +179,7 @@ manager_init(manager m)
     }
 
     // Make local nodes for our keys
-    manager_merge_nodes(m, m->key_chain_len, m->key, 0);
+    manager_merge_nodes(m, m->key_chain_len, m->key, m->self);
 
     if (nregions < 1) return warnx("no valid regions"), -2;
 
@@ -445,21 +444,14 @@ manager_add_links(manager m, uint32_t *key, uint8_t rank,
     return nde;
 }
 
-/* p may be null to indicate a local node */
 int
 manager_merge_node(manager mgr, uint32_t *key, peer p)
 {
     for (size_t i = 0; i < mgr->nodes.used; i++) {
         node n = mgr->nodes.items[i];
         if (n->key == key) {
-            if (p) {
-                if (n->peer && n->peer != p) {
-                    warnx("node conflict %s -> %d:%d & %d:%d");
-                }
-                n->peer = p;
-            } else {
-                n->is_local = 1;
-            }
+            if (n->peer != p) warnx("node conflict %s -> %d:%d & %d:%d");
+            n->peer = p;
             return 0;
         }
     }

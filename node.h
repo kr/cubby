@@ -15,8 +15,6 @@ typedef struct node *node;
 
 struct node {
     uint32_t key[3];
-    char pad[3];
-    char is_local;
 
     peer peer;
 };

@@ -6,6 +6,7 @@ node
 make_node(uint32_t *key, peer p)
 {
     if (!key) return 0;
+    if (!p) return 0;
 
     node n = malloc(sizeof(struct node));
     if (!n) return warn("malloc"), (node) 0;
@@ -13,7 +14,6 @@ make_node(uint32_t *key, peer p)
     n->key[0] = key[0];
     n->key[1] = key[1];
     n->key[2] = key[2];
-    n->is_local = !p;
     n->peer = p;
 
     return n;
@@ -22,7 +22,7 @@ make_node(uint32_t *key, peer p)
 int
 node_is_local(node n)
 {
-    return !!n->is_local;
+    return !!n->peer->is_local;
 }
 
 int
