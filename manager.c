@@ -291,7 +291,25 @@ static void
 manager_rebalance_dirent_cb(manager m, uint32_t *key, int error, void *ignore)
 {
     if (error == 0) {
-        // TODO send UNLINK to old nodes
+        // We maybe should delete our dirent if we are no longer within
+        // DIRENT_W neighbors of KEY. Same goes for our neighbors further away.
+        // The usual linking algorithm covers this case, so we act like we just
+        // got a LINK message with our new rank.
+
+        dirent de = spht_get(m->directory, key);
+        if (!de) return; // should not happen
+
+        peer_id ids[de->len];
+        for (int i = 0; i < de->len; i++) {
+            rdesc rd = de->rdescs + i;
+            if (rd->flags & RDESC_LOCAL) {
+                ids[i] = peer_get_id(m->self);
+            } else {
+                ids[i] = make_peer_id(rd->b, rd->a);
+            }
+        }
+
+        prot_link(m, key, de->len, ids, de->rank, 0, 0);
     } else {
         // Buh.
     }
@@ -300,18 +318,21 @@ manager_rebalance_dirent_cb(manager m, uint32_t *key, int error, void *ignore)
 static void
 manager_rebalance_dirent(manager mgr, dirent de)
 {
-    node owners[DIRENT_W] = { 0, };
+    // Continue only if we are the old owner.
+    if (de->rank != 0) return;
 
-    int n = manager_find_owners(mgr, de->key, DIRENT_W, owners);
-    if (n < 1) return warnx("no active peers");
+    node owner;
+    int n = manager_find_owners(mgr, de->key, 1, &owner);
+    if (n < 1) return warnx("no active peers"); // can't happen
 
-    for (int i = 0; i < n; i++) {
-        if (node_is_remote(owners[i]) &&
-                owners[i]->peer->state == peer_state_in_rebalance) {
-            prot_send_links(mgr, 1, &owners[i]->peer, de, i,
-                    manager_rebalance_dirent_cb, 0);
-        }
-    }
+    // Continue only if the new owner is still bootstrapping.
+    if (owner->peer->state != peer_state_in_rebalance) return;
+
+    // Assume we are out of range. If this is wrong, our closer neighbor will
+    // correct us.
+    de->rank = DIRENT_W;
+
+    prot_send_primary_link(mgr, de, manager_rebalance_dirent_cb, 0);
 }
 
 static void
