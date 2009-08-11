@@ -355,11 +355,11 @@ manager_add_links(manager m, uint32_t *key, uint8_t rank,
     return 0;
 
     int r, new_len = 0;
-    peer_id x[len], *new_ids = 0;
+    peer_id new_ids_buf[len], *new_ids = 0;
     dirent nde, de = spht_get(m->directory, key);
 
     if (de) {
-        new_ids = x;
+        new_ids = new_ids_buf;
 
         for (int i = 0; i < len; i++) {
             if (dirent_has_remote(de,
