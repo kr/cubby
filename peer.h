@@ -31,6 +31,7 @@ struct peer {
     in_addr_t addr;
     int cp_port; // Cubby UDP control protocol port
     peer_state state;
+    char is_local;
 
     uint64_t last_message_to; // Local time stamp of our last sent packet.
     uint64_t last_message_from; // Local time stamp of the last received packet.

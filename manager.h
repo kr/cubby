@@ -41,6 +41,7 @@ struct manager {
     peer *peers; // All known peers
     size_t peers_cap;
     size_t peers_fill;
+    peer self;
 
     int memcache_port;
     int http_port;

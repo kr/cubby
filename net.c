@@ -231,6 +231,11 @@ net_init(struct in_addr host_addr, int udp_port, manager mgr)
         exit(2);
     }
 
+    if (host_addr.s_addr == INADDR_ANY) {
+        warnx("can't listen on 0.0.0.0");
+        exit(2);
+    }
+
     udp_socket = make_udp_listen_socket(host_addr, udp_port);
     if (udp_socket == -1) {
         warnx("could not open udp port %d", udp_port);
@@ -266,6 +271,9 @@ net_init(struct in_addr host_addr, int udp_port, manager mgr)
         evhttp_set_gencb(ev_http, http_handle_generic, mgr);
         evhttp_set_cb(ev_http, "/", http_handle_root, mgr);
     }
+
+    mgr->self = manager_get_peer(mgr, host_addr.s_addr, udp_port);
+    mgr->self->is_local = 1;
 
 }
 
