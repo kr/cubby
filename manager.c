@@ -302,8 +302,7 @@ manager_rebalance_dirent(manager mgr, dirent de)
 {
     node owners[DIRENT_W] = { 0, };
 
-    int n = manager_find_closest_active_remote_nodes(mgr, de->key,
-            DIRENT_W, owners);
+    int n = manager_find_owners(mgr, de->key, DIRENT_W, owners);
     if (n < 1) return warnx("no active peers");
 
     for (int i = 0; i < n; i++) {
@@ -334,32 +333,6 @@ manager_find_owners(manager m, uint32_t *key, int n, node *out)
             continue;
         }
 
-        int j = min(found, n);
-        found++;
-        ps[j] = m->nodes.items[i];
-        for (; j; j--) {
-            if (key_distance_cmp(m->key, ps[j - 1]->key, ps[j]->key) < 0) break;
-            node t = ps[j];
-            ps[j] = ps[j - 1];
-            ps[j - 1] = t;
-        }
-    }
-
-    for (int i = 0; i < n; i++) out[i] = ps[i];
-    return found;
-}
-
-/* DEPRECATED */
-int
-manager_find_closest_active_remote_nodes(manager m, uint32_t *key, int n,
-        node *out)
-{
-    node ps[n + 1];
-
-    int found = 0;
-    for (int i = 0; i < m->nodes.used; i++) {
-        if (node_is_local(m->nodes.items[i])) continue;
-        if (!node_is_active(m->nodes.items[i])) continue;
         int j = min(found, n);
         found++;
         ps[j] = m->nodes.items[i];

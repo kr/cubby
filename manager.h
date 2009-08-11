@@ -86,10 +86,6 @@ void manager_out_pushback(manager m, cpkt c);
 
 peer manager_get_peer(manager m, in_addr_t addr, uint16_t port);
 
-/* DEPRECATED */
-int manager_find_closest_active_remote_nodes(manager m, uint32_t *key, int n,
-        node *out);
-
 /* Fills OUT with at most N nodes in order of distance from KEY. Every node in
    OUT refers to a distinct peer. Returns the number of nodes placed in OUT.
    This may be less than N if fewer than N suitable nodes exist. */
