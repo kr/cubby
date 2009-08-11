@@ -113,7 +113,7 @@ peer_send_pong(peer p)
 void
 peer_send_link(peer p, dirent de, uint8_t rank)
 {
-    cpkt c = make_cpkt_link(de, rank);
+    cpkt c = make_cpkt_link(de, rank, p->manager);
     if (!c) return warnx("make_cpkt_link");
 
     peer_send(p, c);

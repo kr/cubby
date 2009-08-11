@@ -222,14 +222,7 @@ cpkt_link_handle(cpkt generic, peer p)
     peer_id ids[len];
 
     for (int i = 0; i < len; i++) {
-        in_addr_t addr = c->targets[i].addr;
-        uint16_t port = c->targets[i].port;
-
-        // If addr or port are zero, it means the sender.
-        if (!addr) addr = p->addr;
-        if (!port) port = p->cp_port;
-
-        ids[i] = make_peer_id(addr, port);
+        ids[i] = make_peer_id(c->targets[i].addr, c->targets[i].port);
     }
 
     prot_link(p->manager, c->key, len, ids, c->rank, cpkt_link_handle_cb, p);
@@ -316,7 +309,7 @@ make_cpkt_pong(in_addr_t addr, uint16_t port, manager mgr, int len, node *nodes)
 }
 
 cpkt
-make_cpkt_link(dirent de, uint8_t rank)
+make_cpkt_link(dirent de, uint8_t rank, manager mgr)
 {
     cpkt_link c = (cpkt_link) make_cpkt(CPKT_BASE_SIZE(link) +
             sizeof(struct cpkt_peer_desc) * de->len);
@@ -330,8 +323,8 @@ make_cpkt_link(dirent de, uint8_t rank)
     for (int i = 0; i < de->len; i++) {
         rdesc rd = de->rdescs + i;
         if (rd->flags & RDESC_LOCAL) {
-            c->targets[i].addr = 0; // special value means "sender"
-            c->targets[i].port = 0; // special value means "sender"
+            c->targets[i].addr = mgr->self->addr;
+            c->targets[i].port = mgr->self->cp_port;
         } else {
             c->targets[i].addr = rd->b;
             c->targets[i].port = rd->a;
