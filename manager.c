@@ -375,31 +375,6 @@ manager_find_closest_active_remote_nodes(manager m, uint32_t *key, int n,
     return found;
 }
 
-/* DEPRECATED */
-static int
-eq(void *a, void *b) {
-    return a == b;
-}
-
-/* Just like manager_find_closest_active_remote_nodes, but only returns
-   distinct peers. */
-/* DEPRECATED */
-int
-manager_find_closest_active_peers(manager m, uint32_t *key, int n, peer *out)
-{
-    size_t all = m->nodes.used;
-    node ns[all];
-
-    int found = manager_find_closest_active_remote_nodes(m, key, all, ns);
-    int j = 0;
-
-    // O(n * found)
-    for (int i = 0; i < found && j < n; i++) {
-        if (!any(j, (void **) out, eq, ns[i]->peer)) out[j++] = ns[i]->peer;
-    }
-    return j;
-}
-
 dirent
 manager_add_links(manager m, uint32_t *key, uint8_t rank,
         int len, peer_id *peer_ids)

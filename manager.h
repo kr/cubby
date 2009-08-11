@@ -87,10 +87,6 @@ void manager_out_pushback(manager m, cpkt c);
 peer manager_get_peer(manager m, in_addr_t addr, uint16_t port);
 
 /* DEPRECATED */
-int manager_find_closest_active_peers(manager m, uint32_t *key, int n,
-        peer *out);
-
-/* DEPRECATED */
 int manager_find_closest_active_remote_nodes(manager m, uint32_t *key, int n,
         node *out);
 

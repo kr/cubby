@@ -127,13 +127,13 @@ prot_send_links(manager m, int n, peer *to, dirent de, uint8_t rank,
 void
 prot_send_primary_link(manager m, dirent de, prot_send_link_fn cb, void *data)
 {
-    peer closest;
-    int n = manager_find_closest_active_peers(m, de->key, 1, &closest);
+    node closest;
+    int n = manager_find_owners(m, de->key, 1, &closest);
 
     // No peers? Pretend like it worked.
     if (!n) return cb(m, de->key, 0, data);
 
-    prot_send_links(m, n, &closest, de, 0, cb, data);
+    prot_send_links(m, n, &closest->peer, de, 0, cb, data);
 }
 
 /* This is the meat of the distributed linking algorithm. */

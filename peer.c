@@ -99,14 +99,12 @@ peer_send_ping(peer pr)
 void
 peer_send_pong(peer p)
 {
-    manager m = p->manager;
-    peer closest[PONG_PEER_MAX];
-
     if (!p) return;
+    manager m = p->manager;
+    node closest[PONG_PEER_MAX];
 
-    int n = manager_find_closest_active_peers(m, m->key, PONG_PEER_MAX,
-            closest);
-    cpkt pkt = make_cpkt_pong(0, 0, closest, n, m);
+    int n = manager_find_owners(m, m->key, PONG_PEER_MAX, closest);
+    cpkt pkt = make_cpkt_pong(0, 0, m, n, closest);
     if (!pkt) return warnx("make_cpkt_pong");
 
     peer_send(p, pkt);

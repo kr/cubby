@@ -296,7 +296,7 @@ make_cpkt_ping(in_addr_t addr, int cp_port, manager mgr)
 }
 
 cpkt
-make_cpkt_pong(in_addr_t addr, uint16_t port, peer *peers, int len, manager mgr)
+make_cpkt_pong(in_addr_t addr, uint16_t port, manager mgr, int len, node *nodes)
 {
     cpkt_pong cp = (cpkt_pong) make_cpkt(CPKT_BASE_SIZE(pong) +
             sizeof(struct cpkt_peer_desc) * len);
@@ -309,8 +309,8 @@ make_cpkt_pong(in_addr_t addr, uint16_t port, peer *peers, int len, manager mgr)
     cp->root_key[2] = mgr->key[2];
     cp->chain_len = mgr->key_chain_len;
     for (int i = 0; i < len; i++) {
-        cp->peers[i].addr = peers[i]->addr;
-        cp->peers[i].port = peers[i]->cp_port;
+        cp->peers[i].addr = nodes[i]->peer->addr;
+        cp->peers[i].port = nodes[i]->peer->cp_port;
     }
     return (cpkt) cp;
 }
