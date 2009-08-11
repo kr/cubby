@@ -90,9 +90,9 @@ peer manager_get_peer(manager m, in_addr_t addr, uint16_t port);
 int manager_find_closest_active_remote_nodes(manager m, uint32_t *key, int n,
         node *out);
 
-/* Fills out with at most n nodes in order of distance from key. Every node in
-   out refers to a distinct peer. Returns the number of nodes placed in out.
-   This may be less than n if fewer than n suitable nodes exist. */
+/* Fills OUT with at most N nodes in order of distance from KEY. Every node in
+   OUT refers to a distinct peer. Returns the number of nodes placed in OUT.
+   This may be less than N if fewer than N suitable nodes exist. */
 int manager_find_owners(manager m, uint32_t *key, int n, node *out);
 
 dirent manager_add_links(manager m, uint32_t *key, uint8_t rank,
