@@ -125,7 +125,7 @@ prot_send_links(manager m, int n, peer *to, dirent de, uint8_t rank,
 }
 
 void
-prot_send_link(manager m, dirent de, prot_send_link_fn cb, void *data)
+prot_send_primary_link(manager m, dirent de, prot_send_link_fn cb, void *data)
 {
     peer closest;
     int n = manager_find_closest_active_peers(m, de->key, 1, &closest);
