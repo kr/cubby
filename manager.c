@@ -365,6 +365,7 @@ manager_add_links(manager m, uint32_t *key, uint8_t rank,
             if (dirent_has_remote(de,
                         peer_id_get_addr(peer_ids[i]),
                         peer_id_get_port(peer_ids[i]))) continue;
+            if (peer_ids[i] == peer_get_id(m->self)) continue;
             new_ids[new_len++] = peer_ids[i];
         }
 
