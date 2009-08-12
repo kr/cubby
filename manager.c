@@ -291,7 +291,7 @@ static void
 manager_rebalance_dirent_cb(manager m, uint32_t *key, int error, void *ignore)
 {
     if (error == 0) {
-        // We maybe should delete our dirent if we are no longer within
+        // We might need to delete our dirent if we are no longer within
         // DIRENT_W neighbors of KEY. Same goes for our neighbors further away.
         // The usual linking algorithm covers this case, so we act like we just
         // got a LINK message with our new rank.
