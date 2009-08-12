@@ -273,20 +273,6 @@ manager_get_peer(manager m, in_addr_t addr, uint16_t port)
     return p;
 }
 
-/* Caller must provide an output array with enough space. */
-static int
-manager_get_peers(manager mgr, peer_state state, peer *out)
-{
-    int n = 0;
-    for (int i = 0; i < mgr->peers_fill; i++) {
-        peer p = mgr->peers[i];
-        if (p->state == state) {
-            out[n++] = p;
-        }
-    }
-    return n;
-}
-
 static void
 manager_rebalance_dirent_cb(manager m, uint32_t *key, int error, void *ignore)
 {
@@ -336,8 +322,20 @@ manager_rebalance_dirent(manager mgr, dirent de)
 }
 
 static void
-manager_recover_dirent(manager mgr, dirent de, peer *peers, int n)
+manager_recover_dirent(manager mgr, dirent de)
 {
+    // Continue only if we aren't already the primary owner.
+    if (de->rank == 1) return;
+
+    node owner;
+    int n = manager_find_owners(mgr, de->key, 1, &owner);
+    if (n < 1) return warnx("no active peers"); // can't happen
+
+    // Continue only if we are the new owner.
+    if (owner->peer != mgr->self) return;
+
+    // We will check for necessary file copies on the other side.
+    prot_send_primary_link(mgr, de, manager_rebalance_dirent_cb, 0);
 }
 
 int
@@ -472,11 +470,6 @@ manager_rebalance_work(manager mgr)
         mgr->cursor.cap_check = mgr->directory->table->cap;
     }
 
-    peer recovery_peers[mgr->peers_fill];
-
-    int recovery_peer_count = manager_get_peers(mgr, peer_state_in_recovery,
-            recovery_peers);
-
     usec start = now_usec();
     size_t i;
     for (i = mgr->cursor.pos; i < mgr->directory->table->cap; i++) {
@@ -488,7 +481,7 @@ manager_rebalance_work(manager mgr)
         if (!de || de == invalid_dirent) continue;
 
         manager_rebalance_dirent(mgr, de);
-        manager_recover_dirent(mgr, de, recovery_peers, recovery_peer_count);
+        manager_recover_dirent(mgr, de);
     }
     mgr->cursor.pos = i;
 

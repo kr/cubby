@@ -130,7 +130,7 @@ prot_send_primary_link(manager m, dirent de, prot_send_link_fn cb, void *data)
     node closest;
     int n = manager_find_owners(m, de->key, 1, &closest);
 
-    // No peers? Pretend like it worked.
+    // can't happen -- should at least find ourselves
     if (!n) return cb(m, de->key, 0, data);
 
     prot_send_links(m, n, &closest->peer, de, 0, cb, data);
