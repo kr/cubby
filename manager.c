@@ -148,6 +148,7 @@ manager_next_key(uint32_t *prev)
 void
 manager_merge_nodes(manager m, uint16_t chain_len, uint32_t *key, peer p)
 {
+    if (!p) return warnx("no peer");
     for (int i = 0; i < chain_len; i++, key = manager_next_key(key)) {
         manager_merge_node(m, key, p);
     }
@@ -180,9 +181,6 @@ manager_init(manager m)
         nregions += b->nregions;
         m->key_chain_len += b->reg_size / BUNDLE_OVERLAY_NODE_SIZE;
     }
-
-    // Make local nodes for our keys
-    manager_merge_nodes(m, m->key_chain_len, m->key, m->self);
 
     if (nregions < 1) return warnx("no valid regions"), -2;
 

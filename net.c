@@ -163,6 +163,11 @@ net_udp_recv(int fd, short which, void *mgr)
     cp->remote_addr = src_in->sin_addr.s_addr;
     cp->remote_port = src_in->sin_port;
     peer p = manager_get_peer(mgr, cp->remote_addr, cp->remote_port);
+    if (!p) {
+        warnx("manager_get_peer");
+        free(cp);
+        return;
+    }
     peer_touch(p);
     cpkt_handle(cp, p);
     free(cp);
@@ -275,6 +280,7 @@ net_init(struct in_addr host_addr, int udp_port, manager mgr)
 
     mgr->self = manager_get_peer(mgr, host_addr.s_addr, udp_port);
     mgr->self->is_local = 1;
+    manager_merge_nodes(mgr, mgr->key_chain_len, mgr->key, mgr->self);
 
 }
 

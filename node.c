@@ -5,8 +5,8 @@
 node
 make_node(uint32_t *key, peer p)
 {
-    if (!key) return 0;
-    if (!p) return 0;
+    if (!key) return warnx("no key"), (node) 0;
+    if (!p) return warnx("no peer"), (node) 0;
 
     node n = malloc(sizeof(struct node));
     if (!n) return warn("malloc"), (node) 0;
