@@ -348,24 +348,23 @@ manager_find_owners(manager m, uint32_t *key, int n, node *out)
     for (int i = 0; i < m->nodes.used; i++) {
         if (!node_is_active(m->nodes.items[i])) continue;
 
-        int c = 0;
-        for (int j = 0; j < i; ++j) {
-            if (nodes_are_congruent(ps[j], m->nodes.items[i])) c = 1;
+        int skip = 0;
+        for (int j = 0; j < found; ++j) {
+            if (nodes_are_congruent(ps[j], m->nodes.items[i])) skip = 1;
         }
-        if (c) continue;
+        if (skip) continue;
 
-        int j = min(found, n);
-        found++;
-        ps[j] = m->nodes.items[i];
-        for (; j; j--) {
+        ps[found] = m->nodes.items[i];
+        for (int j = found; j; j--) {
             if (key_distance_cmp(m->key, ps[j - 1]->key, ps[j]->key) < 0) break;
             node t = ps[j];
             ps[j] = ps[j - 1];
             ps[j - 1] = t;
         }
+        found = min(found + 1, n);
     }
 
-    for (int i = 0; i < n; i++) out[i] = ps[i];
+    for (int i = 0; i < found; i++) out[i] = ps[i];
     return found;
 }
 
