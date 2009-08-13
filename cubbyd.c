@@ -34,10 +34,11 @@ usage(const char *msg, const char *arg)
     } else if (msg) {
         raw_warnx("%s", msg);
     }
-    fprintf(stderr, "Use: %s [OPTIONS]\n"
+    fprintf(stderr, "Use: %s [OPTIONS] FILE...\n"
+      "\n"
+      "Each FILE will be used for storage. It can be a block device.\n"
       "\n"
       "Options:\n"
-      " -f FILE        use this storage file (may be given more than once)\n"
       " -l ADDR        listen on this address\n"
       " -m PORT        memcache, listen on port PORT (default %d)\n"
       " -p PORT        HTTP, listen on port PORT (default %d)\n"
@@ -126,18 +127,16 @@ add_bootstrap_peer(manager mgr, const char *arg)
     if (!p) errx(50, "failed to allocate boostrap peer");
 }
 
-static void
+static char **
 opts(manager mgr, char **argv)
 {
     char *opt;
 
-    while ((opt = *argv++)) {
-        if (opt[0] != '-') usage("unknown argument", opt);
+    while ((opt = *argv)) {
+        if (opt[0] != '-') break;
         if (opt[1] == 0 || opt[2] != 0) usage("unknown option", opt);
+        ++argv;
         switch (opt[1]) {
-            case 'f':
-                add_bundle(mgr, require_arg("-f", *argv++));
-                break;
             case 'i':
                 initialize_bundles = 1;
                 break;
@@ -171,6 +170,7 @@ opts(manager mgr, char **argv)
                 usage("unknown option", opt);
         }
     }
+    return argv;
 }
 
 int
@@ -184,12 +184,15 @@ main(int argc, char **argv)
     udp_port = htons(DEFAULT_UDP_PORT);
     mgr.memcache_port = htons(DEFAULT_MEMCACHE_PORT);
     mgr.http_port = htons(DEFAULT_HTTP_PORT);
-    opts(&mgr, argv + 1);
+    argv = opts(&mgr, argv + 1);
     util_id = ntohs(udp_port);
+
+    warnx("argv currently %s", *argv);
+    for (; *argv; ++argv) add_bundle(&mgr, *argv);
 
     r = manager_init(&mgr);
     if (r == -1) return warnx("cannot continue"), 2;
-    if (r == -2) usage("Try the -f option", 0);
+    if (r == -2) usage("Please provide a file name.", 0);
 
     if (!use_net) return 0;
 

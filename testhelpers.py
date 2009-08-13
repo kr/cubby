@@ -14,16 +14,18 @@ class cubbyd_runner:
       http_port='auto',
       bundles='auto',
       init=True):
-    self.args = ('./cubbyd',)
+    self.program = ('./cubbyd',)
+    self.opts = ()
+    self.files = ()
 
     if addr:
       self.addr = addr
-      self.args += ('-l', addr)
+      self.opts += ('-l', addr)
 
     if http_port:
       if http_port is 'auto': http_port = get_free_tcp_port()
       self.http_port = http_port
-      self.args += ('-p', str(http_port))
+      self.opts += ('-p', str(http_port))
 
     if bundles:
       if bundles is 'auto': bundles = (make_bundle(),)
@@ -33,21 +35,23 @@ class cubbyd_runner:
           name = b
         else:
           name = b.name
-        self.args += ('-f', name)
+        self.files += (name,)
 
     self.init = not not init
     if init:
-      self.args += ('-i',)
+      self.opts += ('-i',)
 
   def __del__(self):
     if hasattr(self, 'process'):
       self.process.kill()
 
-  def run(self, more_args=()):
+  def run(self, more_opts=(), more_files=()):
     self.stdin = tempfile.TemporaryFile()
     self.stdout = tempfile.TemporaryFile()
     self.stderr = tempfile.TemporaryFile()
-    self.process = subprocess.Popen(self.args + more_args,
+
+    self.process = subprocess.Popen(
+        self.program + self.opts + more_opts + self.files + more_files,
         stdin=self.stdin,
         stdout=self.stdout,
         stderr=self.stderr)
