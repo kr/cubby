@@ -107,12 +107,15 @@ manager_read_regions(manager mgr, uint16_t count)
             size_t size;
             region reg = &mgr->all_regions[n++];
 
+            char *base = (char *) bundle_get_region_storage(bun, j);
+
             // Total size of the region, including the headers
             size = 1LU << REGION_BITS;
-            if (j == bun->nregions - 1) size = bun->reg_size % size;
             // the last region might be shorter
-
-            region_init(reg, n - 1, bundle_get_region_storage(bun, j), size);
+            if (base + size > bundle_top(bun)) {
+                size = bundle_top(bun) - base;
+            }
+            region_init(reg, n - 1, (region_storage) base, size);
             region_read(reg, mgr, bun->name);
 
             if (!region_close_to_full(reg)) {

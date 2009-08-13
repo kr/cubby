@@ -133,3 +133,9 @@ bundle_open(bundle b)
     return 0;
 }
 
+char *
+bundle_top(bundle b)
+{
+    return ((char *) b->storage) + b->tot_size;
+}
+

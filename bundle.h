@@ -48,5 +48,6 @@ int add_bundle(manager mgr, char *name);
 void bundle_sync(bundle b, int sync);
 bundle bundle_get(manager mgr, uint16_t i);
 region_storage bundle_get_region_storage(bundle b, uint16_t i);
+char *bundle_top(bundle b);
 
 #endif //bundle_h
