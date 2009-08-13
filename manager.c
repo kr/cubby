@@ -428,6 +428,7 @@ manager_merge_node(manager mgr, uint32_t *key, peer p)
     }
 
     node n = make_node(key, p);
+    if (!n) return warnx("make_node"), -1;
     int r = arr_append(&mgr->nodes, n);
     if (r != 1) return warnx("arr_append"), -1;
     return 0;
