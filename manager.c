@@ -348,10 +348,11 @@ manager_find_owners(manager m, uint32_t *key, int n, node *out)
     for (int i = 0; i < m->nodes.used; i++) {
         if (!node_is_active(m->nodes.items[i])) continue;
 
-        if (any(i, (void **) out, (test_fn) nodes_are_congruent,
-                    m->nodes.items[i])) {
-            continue;
+        int c = 0;
+        for (int j = 0; j < i; ++j) {
+            if (nodes_are_congruent(out[j], m->nodes.items[i])) c = 1;
         }
+        if (c) continue;
 
         int j = min(found, n);
         found++;

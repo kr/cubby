@@ -73,6 +73,4 @@ void timeval_from_usec(struct timeval *tv, usec t);
 
 void key_for_peer(uint32_t key[3], in_addr_t addr, uint16_t port);
 
-int any(size_t len, void **set, test_fn f, void *data);
-
 #endif /*util_h*/
