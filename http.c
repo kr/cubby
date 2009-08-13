@@ -25,6 +25,10 @@
 #define HTTP_INTERNAL_ERROR 500
 #endif
 
+#define DEBUG_JSON "{\n" \
+  "\"version\": \"%s\"\n" \
+"}\n"
+
 extern const char root_html[];
 extern const int root_html_size;
 
@@ -177,6 +181,22 @@ http_handle_root(struct evhttp_request *req, void *mgr)
 
     out = evbuffer_new();
     evbuffer_add_reference(out, root_html, root_html_size, 0, 0);
+    evhttp_send_reply(req, HTTP_OK, "OK", out);
+    evbuffer_free(out);
+}
+
+void
+http_handle_debug_json(struct evhttp_request *req, void *mgr)
+{
+    struct evbuffer *out;
+
+    if (req->type != EVHTTP_REQ_GET) {
+        // TODO add allow header
+        evhttp_send_reply(req, 405, "Method not allowed", 0);
+    }
+
+    out = evbuffer_new();
+    evbuffer_add_printf(out, DEBUG_JSON, VERSION);
     evhttp_send_reply(req, HTTP_OK, "OK", out);
     evbuffer_free(out);
 }

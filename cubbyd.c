@@ -38,6 +38,7 @@ usage(const char *msg, const char *arg)
       "\n"
       "Options:\n"
       " -f FILE        use this storage file (may be given more than once)\n"
+      " -l ADDR        listen on this address\n"
       " -m PORT        memcache, listen on port PORT (default %d)\n"
       " -p PORT        HTTP, listen on port PORT (default %d)\n"
       " -c PORT        control protocol, listen on UDP port PORT (default %d)\n"
@@ -57,6 +58,13 @@ require_arg(char *opt, char *arg)
 {
     if (!arg) usage("option requires an argument", opt);
     return arg;
+}
+
+static void
+parse_addr(struct in_addr *addr, const char *addrstr)
+{
+    int r = inet_pton(AF_INET, addrstr, addr);
+    if (!r) usage("invalid peer address", addrstr);
 }
 
 /* returns port in network order */
@@ -135,6 +143,9 @@ opts(manager mgr, char **argv)
                 break;
             case 'I':
                 initialize_bundles = 0;
+                break;
+            case 'l':
+                parse_addr(&host_addr, require_arg("-l", *argv++));
                 break;
             case 'm':
                 mgr->memcache_port = parse_port(require_arg("-m", *argv++));

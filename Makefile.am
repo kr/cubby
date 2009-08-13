@@ -69,6 +69,7 @@ cubbyd_LDADD = $(templates:.html=.o)
 
 check: cutcheck
 	$(builddir)/$<
+	$(srcdir)/check.py
 
 cutcheck.c: cutgen $(unit_tests)
 	$(builddir)/$< -o $@ $(^:$<=)

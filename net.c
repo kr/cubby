@@ -270,6 +270,7 @@ net_init(struct in_addr host_addr, int udp_port, manager mgr)
 
         evhttp_set_gencb(ev_http, http_handle_generic, mgr);
         evhttp_set_cb(ev_http, "/", http_handle_root, mgr);
+        evhttp_set_cb(ev_http, "/$/debug.json", http_handle_debug_json, mgr);
     }
 
     mgr->self = manager_get_peer(mgr, host_addr.s_addr, udp_port);
