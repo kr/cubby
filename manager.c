@@ -350,7 +350,7 @@ manager_find_owners(manager m, uint32_t *key, int n, node *out)
 
         int c = 0;
         for (int j = 0; j < i; ++j) {
-            if (nodes_are_congruent(out[j], m->nodes.items[i])) c = 1;
+            if (nodes_are_congruent(ps[j], m->nodes.items[i])) c = 1;
         }
         if (c) continue;
 
