@@ -18,8 +18,6 @@ void prot_work(manager mgr);
 int prot_outstanding_link_onremove(arr a, void *item, size_t index);
 
 /* Just send link messages to others. */
-void prot_send_links(manager m, int n, peer *to, dirent de, uint8_t rank,
-        prot_send_link_fn cb, void *data);
 void prot_send_primary_link(manager m, dirent de,
         prot_send_link_fn cb, void *data);
 

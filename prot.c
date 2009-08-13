@@ -15,11 +15,9 @@ typedef struct link_progress {
     prot_send_link_fn cb;
     void *data;
 
-    struct {
-        peer peer;
-        usec first_at;
-        usec last_at;
-    } peers[DIRENT_W];
+    peer peer;
+    usec first_at;
+    usec last_at;
 } *link_progress;
 
 int
@@ -34,32 +32,27 @@ prot_outstanding_link_update(arr a, void *item, size_t index)
 {
     link_progress prog = item;
 
-    if (!prog->peers[0].peer && !prog->peers[0].peer) {
+    if (!prog->peer) {
         prog->cb(prog->manager, prog->de->key, 0, prog->data);
         return 0; // remove it from the list
     }
 
-    for (int i = 0; i < DIRENT_W; i++) {
-        peer p = prog->peers[i].peer;
-        if (p) {
-            usec now = p->manager->slice_start;
-            usec delta_last = now - prog->peers[i].last_at;
-            usec delta_first = now - prog->peers[i].first_at;
+    usec now = prog->peer->manager->slice_start;
+    usec delta_last = now - prog->last_at;
+    usec delta_first = now - prog->first_at;
 
-            if (prog->peers[i].first_at == 0) { // Send the first request
-                prog->peers[i].first_at = now;
-                prog->peers[i].last_at = now;
-                peer_send_link(p, prog->de, prog->rank);
-            } else if (delta_first > ABANDON_LINK_INTERVAL) {
-                prog->cb(prog->manager, prog->de->key, 1, prog->data);
-                return 0; // remove it from the list
-            } else if (delta_last > RETRY_LINK_INTERVAL) {
-                prog->peers[i].last_at = now;
-                peer_send_link(p, prog->de, prog->rank);
-            }
-            // else do nothing
-        }
+    if (prog->first_at == 0) { // Send the first request
+        prog->first_at = now;
+        prog->last_at = now;
+        peer_send_link(prog->peer, prog->de, prog->rank);
+    } else if (delta_first > ABANDON_LINK_INTERVAL) {
+        prog->cb(prog->manager, prog->de->key, 1, prog->data);
+        return 0; // remove it from the list
+    } else if (delta_last > RETRY_LINK_INTERVAL) {
+        prog->last_at = now;
+        peer_send_link(prog->peer, prog->de, prog->rank);
     }
+    // else do nothing
 
     return 1; // keep it in the list
 }
@@ -72,10 +65,8 @@ prot_linked(peer p, uint32_t *key)
     for (int i = 0; i < a->used; i++) {
         link_progress prog = a->items[i];
         if (!key_eq(key, prog->de->key)) continue;
-        for (int j = 0; j < DIRENT_W; j++) {
-            if (prog->peers[j].peer == p) {
-                prog->peers[j].peer = 0;
-            }
+        if (prog->peer == p) {
+            prog->peer = 0;
         }
     }
 }
@@ -98,8 +89,8 @@ prot_init()
 {
 }
 
-void
-prot_send_links(manager m, int n, peer *to, dirent de, uint8_t rank,
+static void
+prot_send_link(manager m, peer *to, dirent de, uint8_t rank,
         prot_send_link_fn cb, void *data)
 {
     link_progress prog = malloc(sizeof(struct link_progress));
@@ -113,13 +104,7 @@ prot_send_links(manager m, int n, peer *to, dirent de, uint8_t rank,
     prog->cb = cb;
     prog->data = data;
 
-    if (n > DIRENT_W) {
-        warnx("n > DIRENT_W (%d > %d) -- capping", n, DIRENT_W);
-        n = DIRENT_W;
-    }
-    for (int i = 0; i < n; i++) {
-        prog->peers[i].peer = to[i];
-    }
+    prog->peer = to[0];
 
     arr_append(&m->outstanding_links, prog);
 }
@@ -133,7 +118,7 @@ prot_send_primary_link(manager m, dirent de, prot_send_link_fn cb, void *data)
     // can't happen -- should at least find ourselves
     if (!n) return cb(m, de->key, 0, data);
 
-    prot_send_links(m, n, &closest->peer, de, 0, cb, data);
+    prot_send_link(m, &closest->peer, de, 0, cb, data);
 }
 
 static void
@@ -178,7 +163,7 @@ prot_link(manager m, uint32_t *key, int len, peer_id *peer_ids, uint8_t rank,
         // when LINKED(K) <- C
         //   LINKED(K) -> A
         // Pass our continuation directly to this tail call.
-        prot_send_links(m, 1, &next->peer, de, rank + 1, cb, data);
+        prot_send_link(m, &next->peer, de, rank + 1, cb, data);
 
         // Are we the primary owner? We are in charge of replication.
         if (rank == 0) prot_start_copies(m, de);
