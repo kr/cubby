@@ -136,6 +136,12 @@ prot_send_primary_link(manager m, dirent de, prot_send_link_fn cb, void *data)
     prot_send_links(m, n, &closest->peer, de, 0, cb, data);
 }
 
+static void
+prot_start_copies(manager m, dirent de)
+{
+    // TODO fill out this stub
+}
+
 /* This is the meat of the distributed linking algorithm. */
 void
 prot_link(manager m, uint32_t *key, int len, peer_id *peer_ids, uint8_t rank,
@@ -173,6 +179,9 @@ prot_link(manager m, uint32_t *key, int len, peer_id *peer_ids, uint8_t rank,
         //   LINKED(K) -> A
         // Pass our continuation directly to this tail call.
         prot_send_links(m, 1, &next->peer, de, rank + 1, cb, data);
+
+        // Are we the primary owner? We are in charge of replication.
+        if (rank == 0) prot_start_copies(m, de);
     } else if ((de = spht_get(m->directory, key))) {
         // delete entry under key K
         // C = next closest node
