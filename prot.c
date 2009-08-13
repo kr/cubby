@@ -9,7 +9,7 @@
 
 typedef struct link_progress {
     manager manager;
-    dirent de;
+    uint32_t key[3];
     uint8_t rank;
 
     prot_send_link_fn cb;
@@ -33,7 +33,7 @@ prot_outstanding_link_update(arr a, void *item, size_t index)
     link_progress prog = item;
 
     if (!prog->peer) {
-        prog->cb(prog->manager, prog->de->key, 0, prog->data);
+        prog->cb(prog->manager, prog->key, 0, prog->data);
         return 0; // remove it from the list
     }
 
@@ -41,16 +41,22 @@ prot_outstanding_link_update(arr a, void *item, size_t index)
     usec delta_last = now - prog->last_at;
     usec delta_first = now - prog->first_at;
 
+    dirent de = spht_get(prog->manager->directory, prog->key);
+    if (!de) { // Wtf? it's gone. Nothing left to do now.
+        prog->cb(prog->manager, prog->key, 2, prog->data);
+        return 0; // remove it from the list
+    }
+
     if (prog->first_at == 0) { // Send the first request
         prog->first_at = now;
         prog->last_at = now;
-        peer_send_link(prog->peer, prog->de, prog->rank);
+        peer_send_link(prog->peer, de, prog->rank);
     } else if (delta_first > ABANDON_LINK_INTERVAL) {
-        prog->cb(prog->manager, prog->de->key, 1, prog->data);
+        prog->cb(prog->manager, de->key, 1, prog->data);
         return 0; // remove it from the list
     } else if (delta_last > RETRY_LINK_INTERVAL) {
         prog->last_at = now;
-        peer_send_link(prog->peer, prog->de, prog->rank);
+        peer_send_link(prog->peer, de, prog->rank);
     }
     // else do nothing
 
@@ -64,7 +70,7 @@ prot_linked(peer p, uint32_t *key)
 
     for (int i = 0; i < a->used; i++) {
         link_progress prog = a->items[i];
-        if (!key_eq(key, prog->de->key)) continue;
+        if (!key_eq(key, prog->key)) continue;
         if (prog->peer == p) {
             prog->peer = 0;
         }
@@ -99,7 +105,9 @@ prot_send_link(manager m, peer *to, dirent de, uint8_t rank,
     memset(prog, 0, sizeof(struct link_progress));
 
     prog->manager = m;
-    prog->de = de;
+    prog->key[0] = de->key[0];
+    prog->key[1] = de->key[1];
+    prog->key[2] = de->key[2];
     prog->rank = rank;
     prog->cb = cb;
     prog->data = data;
