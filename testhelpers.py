@@ -70,6 +70,18 @@ class cubbyd_runner:
     finally:
       conn.close()
 
+  def http_put(self, path, data):
+    import http.client
+    conn = http.client.HTTPConnection(self.addr, self.http_port)
+    try:
+      conn.request("PUT", path, body=data)
+      response = conn.getresponse()
+      if (response.status != 200):
+        raise HTTPError(response, path)
+      return response.read()
+    finally:
+      conn.close()
+
   def http_get_json(self, *args, **kwargs):
     return json.loads(self.http_get(*args, **kwargs).decode())
 
