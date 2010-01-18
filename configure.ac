@@ -42,7 +42,7 @@ CUBBY_HUNT_AROUND([event], [event_assign], [event2/event.h],
 
 # Checks for typedefs, structures, and compiler characteristics.
 #AC_TYPE_SSIZE_T
-AC_TYPE_UINT16_T
+AC_TYPE_UINT64_T
 
 # Checks for library functions.
 AC_CHECK_FUNC([socket], [], [AC_MSG_ERROR([Cubby requires socket])])
