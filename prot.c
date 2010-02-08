@@ -147,7 +147,7 @@ prot_link(manager m, uint32_t *key, int len, peer_id *peer_ids, uint8_t rank,
 
         // Oops, they claim we have rank rank, but we don't even know that many
         // distinct nodes. We must be missing some nodes.
-        if (n < rank + 1) {
+        if (rank >= n) {
           // TODO something useful
           return cb(m, key, 3, data);
         }
@@ -165,7 +165,7 @@ prot_link(manager m, uint32_t *key, int len, peer_id *peer_ids, uint8_t rank,
         if (!de) return cb(m, key, 1, data);
 
         // No more nodes? We are last in the known order of succession.
-        if (n < rank + 2) return cb(m, key, 0, data);
+        if (rank + 1 >= n) return cb(m, key, 0, data);
 
         // LINK(K, T, R + 1) -> C
         // when LINKED(K) <- C

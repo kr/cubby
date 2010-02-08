@@ -39,6 +39,7 @@ raw_vwarnx(const char *err, const char *fmt, va_list args)
         if (err) fprintf(stderr, ": %s", strerror(errno));
     }
     fputc('\n', stderr);
+    fflush(stderr);
 }
 
 void
