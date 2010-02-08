@@ -50,6 +50,11 @@ class cubbyd_runner:
 
   def __del__(self):
     self.kill()
+    self.unlink_bundles()
+
+  def unlink_bundles(self):
+    for b in self.bundles:
+      b.close()
 
   def kill(self):
     if hasattr(self, 'process'):
