@@ -10,7 +10,7 @@ class Test(TestCase):
     del self.cubby
 
   def test_putget(self):
-    name = '/foo'
+    name = '/file/foo'
     data = b'bar'
 
     self.cubby.http_put(name, data)
@@ -18,7 +18,7 @@ class Test(TestCase):
 
   def test_get_missing(self):
     try:
-      self.cubby.http_get('/not-there')
+      self.cubby.http_get('/file/not-there')
       self.fail()
     except HTTPError as ex:
       pass
