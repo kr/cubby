@@ -23,6 +23,13 @@ class Test(TestCase):
     except HTTPError as ex:
       pass
 
+  def test_put_old(self):
+    try:
+      self.cubby.http_put('/bad-path', b'abc')
+      self.fail()
+    except HTTPError as ex:
+      pass
+
 #class TestTwo(TestCase):
 #  def setUp(self):
 #    self.cubby_a = cubbyd()

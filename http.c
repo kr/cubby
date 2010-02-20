@@ -33,26 +33,13 @@ extern const char root_html[];
 extern const int root_html_size;
 
 static void
-http_handle_blob_get(struct evhttp_request *req, manager mgr)
+http_handle_blob_get(struct evhttp_request *req, manager mgr, uint32_t *k)
 {
-    uint32_t k[3] = {};
-    char *duri;
-    char *name;
     dirent de;
     struct evkeyvalq *out_headers;
     struct evbuffer *out;
     int r;
     blob bl;
-
-    duri = evhttp_decode_uri(req->uri);
-    name = duri + 1; // skip the leading slash
-
-    sha512(name, strlen(name), k, 12);
-    char fkey[27];
-    key_fmt(fkey, k);
-    raw_warnx("k = %s", fkey);
-    free(duri);
-    duri = name = 0;
 
     de = spht_get(mgr->directory, k);
     if (!de) {
@@ -97,29 +84,13 @@ http_put_done(manager m, uint32_t *key, int error, void *req)
 }
 
 static void
-http_handle_blob_put(struct evhttp_request *req, manager mgr)
+http_handle_blob_put(struct evhttp_request *req, manager mgr, uint32_t *k)
 {
     struct evbuffer *in;
     size_t len;
-    uint32_t k[3] = {};
     dirent de;
-    char *duri;
-    char *name;
     blob bl;
     int r;
-
-    // Grr. Why can't I allocate my own buffer on the stack if I want?
-    duri = evhttp_decode_uri(req->uri);
-
-    name = duri + 1; // skip the leading slash
-
-    raw_warnx("name (%d bytes) is %s", strlen(name), name);
-    sha512(name, strlen(name), k, 12);
-    char fkey[27];
-    key_fmt(fkey, k);
-    raw_warnx("k = %s", fkey);
-    free(duri);
-    duri = name = 0;
 
     in = evhttp_request_get_input_buffer(req);
     len = evbuffer_get_length(in);
@@ -208,13 +179,40 @@ http_handle_admin(struct evhttp_request *req, manager mgr)
 }
 
 static void
+key_from_req(struct evhttp_request *req, uint32_t *k)
+{
+    char *decoded_uri;
+    char *name;
+
+    decoded_uri = evhttp_decode_uri(req->uri);
+    name = decoded_uri + 6; // Skip the leading "/file/"
+    sha512(name, strlen(name), k, 12);
+    free(decoded_uri);
+}
+
+static void
 http_handle_blob(struct evhttp_request *req, manager mgr)
 {
-    if (req->type == EVHTTP_REQ_GET) return http_handle_blob_get(req, mgr);
-    if (req->type == EVHTTP_REQ_PUT) return http_handle_blob_put(req, mgr);
+    uint32_t k[3] = {};
 
-    // TODO add allow header
-    evhttp_send_reply(req, 405, "Method not allowed", 0);
+    key_from_req(req, k);
+
+    switch (req->type) {
+        case EVHTTP_REQ_GET:
+            raw_warnx("get");
+            http_handle_blob_get(req, mgr, k);
+            break;
+
+        case EVHTTP_REQ_PUT:
+            raw_warnx("put");
+            http_handle_blob_put(req, mgr, k);
+            break;
+
+        default:
+            raw_warnx("other");
+            // TODO add allow header
+            evhttp_send_reply(req, 405, "Method not allowed", 0);
+    }
 }
 
 void
@@ -222,7 +220,9 @@ http_handle_generic(struct evhttp_request *req, void *mgr)
 {
     if (startswith(req->uri, "/admin/")) {
         http_handle_admin(req, mgr);
-    } else {
+    } else if (startswith(req->uri, "/file/")) {
         http_handle_blob(req, mgr);
+    } else {
+        evhttp_send_reply(req, HTTP_NOTFOUND, "Not found", 0);
     }
 }
