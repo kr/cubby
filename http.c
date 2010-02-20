@@ -186,7 +186,7 @@ http_handle_root(struct evhttp_request *req, void *mgr)
 }
 
 void
-http_handle_debug_json(struct evhttp_request *req, void *mgr)
+http_handle_about_json(struct evhttp_request *req, void *mgr)
 {
     struct evbuffer *out;
 
@@ -220,7 +220,7 @@ http_handle_blob(struct evhttp_request *req, manager mgr)
 void
 http_handle_generic(struct evhttp_request *req, void *mgr)
 {
-    if (startswith(req->uri, "/$/")) {
+    if (startswith(req->uri, "/admin/")) {
         http_handle_admin(req, mgr);
     } else {
         http_handle_blob(req, mgr);

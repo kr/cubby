@@ -10,6 +10,6 @@
 void http_handle_generic(struct evhttp_request *req, void *dir);
 
 void http_handle_root(struct evhttp_request *req, void *dir);
-void http_handle_debug_json(struct evhttp_request *req, void *mgr);
+void http_handle_about_json(struct evhttp_request *req, void *mgr);
 
 #endif //http_h
