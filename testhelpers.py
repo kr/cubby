@@ -4,6 +4,8 @@ import tempfile
 import subprocess
 import random
 
+DEV_NULL = open('/dev/null', 'w')
+
 class HTTPError(Exception):
   def __init__(self, response, path):
     self.args = (response.status, response.reason, path)
@@ -72,11 +74,20 @@ class cubbyd_runner:
         stdout=self.stdout,
         stderr=self.stderr)
 
-    # This is to prevent requests to the new daemon from being issued before it
-    # has opened the network ports. TODO make this more robust.
-    time.sleep(0.5)
+    # Wait until it gets fully started up.
+    while not self.is_running:
+      time.sleep(0.05)
 
     return self
+
+  # Check if the process has opened its network ports. If so, we declare it to
+  # be running.
+  @property
+  def is_running(self):
+    #lsof_addr = 'TCP@%s:%d' % (self.addr, self.http_port)
+    lsof_addr = 'TCP:%d' % (self.http_port,)
+    retcode = subprocess.call(['lsof', '-i', lsof_addr], stdout=DEV_NULL)
+    return retcode == 0
 
   def http_get(self, path):
     import http.client
