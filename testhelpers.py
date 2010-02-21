@@ -15,8 +15,10 @@ class cubbyd_runner:
   def __init__(self,
       addr='127.0.0.1',
       http_port='auto',
+      memcache_port='auto',
       control_port='auto',
       bundles='auto',
+      boot=None,
       init=True):
     self.program = ('./cubbyd',)
     self.opts = ()
@@ -28,12 +30,17 @@ class cubbyd_runner:
       http_port = get_free_tcp_port()
     self.http_port = http_port
 
+    if memcache_port is 'auto':
+      memcache_port = get_free_tcp_port()
+    self.memcache_port = memcache_port
+
     if control_port is 'auto':
       control_port = get_free_udp_port()
     self.control_port = control_port
 
     self.opts += ('-l', addr)
     self.opts += ('-p', str(http_port))
+    self.opts += ('-m', str(memcache_port))
     self.opts += ('-c', str(control_port))
 
     if bundles:
@@ -49,6 +56,10 @@ class cubbyd_runner:
     self.init = not not init
     if init:
       self.opts += ('-i',)
+
+    if boot:
+      self.boot_info = boot.addr, boot.control_port
+      self.opts += ('-b', '%s:%d' % self.boot_info)
 
   def __del__(self):
     self.kill()

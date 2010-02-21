@@ -243,7 +243,7 @@ net_init(struct in_addr host_addr, int udp_port, manager mgr)
 
     udp_socket = make_udp_listen_socket(host_addr, udp_port);
     if (udp_socket == -1) {
-        warnx("could not open udp port %d", udp_port);
+        warnx("could not open udp port %d", ntohs(udp_port));
         exit(2);
     }
 
@@ -256,7 +256,7 @@ net_init(struct in_addr host_addr, int udp_port, manager mgr)
     if (mgr->memcache_port) {
         memcache_socket = make_tcp_listen_socket(host_addr, mgr->memcache_port);
         if (memcache_socket == -1) {
-            warnx("could not open memcache port %d", mgr->memcache_port);
+            warnx("could not open memcache port %d", ntohs(mgr->memcache_port));
             exit(2);
         }
     }

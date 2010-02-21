@@ -36,8 +36,10 @@ class Test(TestCase):
 #    self.cubby_b = cubbyd(boot=self.cubby_a)
 #
 #  def test_putget(self):
-#    name = '/foo'
+#    name = '/file/foo'
 #    data = 'bar'
 #
-#    cubby_a.http_put(name, data)
-#    self.assertEqual(cubby_b.http_get(name), data)
+#    self.cubby_a.http_put(name, data)
+#    import time
+#    time.sleep(3)
+#    self.assertEqual(self.cubby_b.http_get(name), data)
