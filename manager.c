@@ -396,7 +396,6 @@ manager_add_links(manager m, uint32_t *key, uint8_t rank,
         nde = make_dirent(key, new_len, rank);
     }
 
-    raw_warnx("nde is %p", nde);
     if (!nde) return 0;
 
     for (int i = 0; i < new_len; i++) {

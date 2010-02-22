@@ -224,7 +224,6 @@ class Peer(formatter('Peer', '>4sHxx', 'n_addr port')):
       addr = kw['addr']
       del kw['addr']
       kw['n_addr'] = socket.inet_aton(addr)
-      print(args, kw)
     return super(clas).__new__(*args, **kw)
 
   @property
