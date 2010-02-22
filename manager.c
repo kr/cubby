@@ -372,15 +372,11 @@ dirent
 manager_add_links(manager m, uint32_t *key, uint8_t rank,
         int len, peer_id *peer_ids)
 {
-    return 0;
-
     int r, new_len = 0;
-    peer_id new_ids_buf[len], *new_ids = 0;
+    peer_id new_ids[len];
     dirent nde, de = spht_get(m->directory, key);
 
     if (de) {
-        new_ids = new_ids_buf;
-
         for (int i = 0; i < len; i++) {
             if (dirent_has_remote(de,
                         peer_id_get_addr(peer_ids[i]),
@@ -392,11 +388,15 @@ manager_add_links(manager m, uint32_t *key, uint8_t rank,
         dirent_set_rank(de, rank);
         nde = copy_dirent(de, de->len + new_len);
     } else {
-        nde = make_dirent(key, len, rank);
-        new_len = len;
-        new_ids = peer_ids;
+        for (int i = 0; i < len; i++) {
+            if (peer_ids[i] == peer_get_id(m->self)) continue;
+            new_ids[new_len++] = peer_ids[i];
+        }
+
+        nde = make_dirent(key, new_len, rank);
     }
 
+    raw_warnx("nde is %p", nde);
     if (!nde) return 0;
 
     for (int i = 0; i < new_len; i++) {

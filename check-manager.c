@@ -322,6 +322,44 @@ __CUT__manager_with_key_merge_duplicate_nodes()
 }
 
 void
+__CUT__manager_with_key_add_no_link()
+{
+    uint32_t key[3] = {};
+
+    manager_merge_nodes(&mgr, mgr.key_chain_len, mgr.key, mgr.self);
+
+    dirent de = manager_add_links(&mgr, key, 0, 0, 0);
+    //ASSERT(de == 0, "should have no dirent");
+    ASSERT(de->len == 0, "should have an empty dirent");
+}
+
+void
+__CUT__manager_with_key_add_link()
+{
+    uint32_t key[3] = {};
+    peer_id id = 12345;
+
+    manager_merge_nodes(&mgr, mgr.key_chain_len, mgr.key, mgr.self);
+
+    dirent de = manager_add_links(&mgr, key, 0, 1, &id);
+    ASSERT(de, "should have a dirent");
+    ASSERT(de->len == 1, "should have a dirent with an entry");
+}
+
+void
+__CUT__manager_with_key_add_self_link()
+{
+    uint32_t key[3] = {};
+    peer_id id = make_peer_id(mgr.self->addr, mgr.self->cp_port);
+
+    manager_merge_nodes(&mgr, mgr.key_chain_len, mgr.key, mgr.self);
+
+    dirent de = manager_add_links(&mgr, key, 0, 1, &id);
+    ASSERT(de, "should have a dirent");
+    ASSERT(de->len == 0, "should have NO self-linking entry, got %d", de->len);
+}
+
+void
 __CUT_TAKEDOWN__manager_with_key()
 {
     unlink(tmp_bundle_name);
