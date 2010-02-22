@@ -179,7 +179,7 @@ manager_init(manager m)
             continue;
         }
         nregions += b->nregions;
-        m->key_chain_len += b->reg_size / BUNDLE_OVERLAY_NODE_SIZE;
+        m->key_chain_len += CEILDIV(b->reg_size, BUNDLE_OVERLAY_NODE_SIZE);
     }
 
     if (nregions < 1) return warnx("no valid regions"), -2;

@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "manager.h"
 #include "cut.h"
@@ -199,5 +200,48 @@ __CUT__manager_with_regions_allocate_lots()
 void
 __CUT_TAKEDOWN__manager_with_regions()
 {
+}
+
+
+static int tmp_bundle_size = 10485760;
+static char tmp_bundle_name_tpl[] = "/tmp/XXXXXX",
+            tmp_bundle_name[sizeof(tmp_bundle_name_tpl) + 1];
+
+void
+__CUT_BRINGUP__manager_with_init()
+{
+    int r;
+
+    initialize_bundles = 1;
+
+    strcpy(tmp_bundle_name, tmp_bundle_name_tpl);
+    int tmp_bundle = mkstemp(tmp_bundle_name);
+
+    r = lseek(tmp_bundle, tmp_bundle_size - 1, SEEK_SET);
+    ASSERT(r == tmp_bundle_size - 1, "error");
+    r = write(tmp_bundle, "\0", 1);
+    ASSERT(r == 1, "error");
+    r = lseek(tmp_bundle, 0, SEEK_SET);
+    ASSERT(r == 0, "error");
+
+    close(tmp_bundle);
+
+    mgr = (struct manager) {};
+    add_bundle(&mgr, tmp_bundle_name);
+
+    r = manager_init(&mgr);
+    ASSERT(r == 0, "error");
+}
+
+void
+__CUT__manager_with_init_check_key_chain_len()
+{
+    ASSERT(mgr.key_chain_len > 0, "should be positive");
+}
+
+void
+__CUT_TAKEDOWN__manager_with_init()
+{
+    unlink(tmp_bundle_name);
 }
 
