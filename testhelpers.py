@@ -2,7 +2,10 @@ import json
 import time
 import tempfile
 import subprocess
+import socket
 import random
+from struct import Struct
+from collections import namedtuple
 
 DEV_NULL = open('/dev/null', 'w')
 
@@ -12,6 +15,9 @@ class HTTPError(Exception):
     self.response = response
 
 class cubbyd_runner:
+  _tester_control_port = None
+  _control_socket = None
+
   def __init__(self,
       addr='127.0.0.1',
       http_port='auto',
@@ -127,6 +133,36 @@ class cubbyd_runner:
   def http_get_json(self, *args, **kwargs):
     return json.loads(self.http_get(*args, **kwargs).decode())
 
+  @property
+  def tester_control_info(self):
+    if not self._tester_control_port:
+      self._tester_control_port = get_free_udp_port()
+    return '127.0.0.1', self._tester_control_port
+
+  @property
+  def control_socket(self):
+    if not self._control_socket:
+      self._control_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+      self._control_socket.bind(self.tester_control_info)
+    return self._control_socket
+
+  def udp_send(self, payload, timeout=5):
+    self.control_socket.settimeout(timeout)
+    self.control_socket.sendto(payload, (self.addr, self.control_port))
+
+  def udp_recv(self, timeout=5):
+    self.control_socket.settimeout(timeout)
+    payload, addr = self.control_socket.recvfrom(2**16)
+    assert(addr == (self.addr, self.control_port))
+    return payload
+
+  def control_send(self, type, **kw):
+    packet = type(type=type.type, **kw)
+    self.udp_send(packet.bytes)
+
+  def control_recv(self):
+    return unpack_control_packet(self.udp_recv())
+
 def cubbyd(*args, **kwargs):
   'Start cubbyd with the given options'
 
@@ -145,3 +181,82 @@ def make_bundle(size=10485760, init=b''):
   f.write(b'\0')
   f.seek(0)
   return f
+
+def group_bytes(b, n):
+  groups = []
+  for i, x in enumerate(b):
+    if i % n == 0:
+      groups.append(b'')
+    groups[-1] += bytes([x])
+  return groups
+
+def formatter(name, fmt, fields):
+  class Formatter(namedtuple(name, fields)):
+    __slots__ = ()
+    format = Struct(fmt)
+    @property
+    def bytes(self):
+      return self.format.pack(*self)
+    @classmethod
+    def unpack(clas, bytes):
+      main, rest = bytes[:clas.format.size], bytes[clas.format.size:]
+      return clas.make(clas.format.unpack(main)).unpack_extra(rest)
+    def unpack_extra(self, bytes):
+      assert len(bytes) == 0
+      return self
+    @classmethod
+    def make(clas, *args, **kw):
+      return clas._make(*args, **kw)
+
+  Formatter.__name__ = name
+  return Formatter
+
+class Peer(formatter('Peer', '>4sHxx', 'n_addr port')):
+  __slots__ = ()
+
+  @classmethod
+  def __new__(clas, *args, **kw):
+    if 'addr' in kw:
+      addr = kw['addr']
+      del kw['addr']
+      kw['n_addr'] = socket.inet_aton(addr)
+      print(args, kw)
+    return super(clas).__new__(*args, **kw)
+
+  @property
+  def addr(self):
+    return socket.inet_ntoa(self.n_addr)
+
+  def __repr__(self):
+    return 'Peer(addr=%r, port=%r)>' % (self.addr, self.port)
+
+Ping = formatter('Ping', '>B7xHH12sH6x', 'type memcache_port http_port root_key chain_len')
+
+class Pong(formatter('Pong', '>B7x12sH2x', 'type root_key chain_len')):
+  def unpack_extra(self, bytes):
+    assert len(bytes) % Peer.format.size == 0
+    self.peers = list(map(Peer.unpack, group_bytes(bytes, Peer.format.size)))
+    return self
+
+class Link(formatter('Link', '>B7x12s3xB', 'type key rank')):
+  def unpack_extra(self, bytes):
+    assert len(bytes) % Peer.format.size == 0
+    self.targets = list(map(Peer.unpack, group_bytes(bytes, Peer.format.size)))
+    return self
+
+Linked = formatter('Linked', '>B7x12s4x', 'type key')
+
+packet_types = [
+  Ping,
+  Pong,
+  Link,
+  Linked,
+]
+
+for i, ptype in enumerate(packet_types):
+  ptype.type = i
+
+def unpack_control_packet(bytes):
+  type = bytes[0]
+  return packet_types[type].unpack(bytes)
+
