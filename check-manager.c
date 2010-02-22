@@ -322,6 +322,74 @@ __CUT__manager_with_key_merge_duplicate_nodes()
 }
 
 void
+__CUT__manager_with_key_merge_two_nodes()
+{
+    struct in_addr host_addr = {};
+    int udp_port = 1;
+    uint32_t key[3] = {};
+    peer p;
+
+    key_for_peer(key, host_addr.s_addr, udp_port);
+    p = manager_get_peer(&mgr, host_addr.s_addr, udp_port);
+
+    manager_merge_nodes(&mgr, mgr.key_chain_len, mgr.key, mgr.self);
+    manager_merge_nodes(&mgr, 1, key, p);
+    ASSERT(mgr.nodes.used == 2, "should have 2 nodes, got %d", mgr.nodes.used);
+}
+
+void
+__CUT__manager_with_key_find_owners_self()
+{
+    struct in_addr host_addr = {};
+    int udp_port = 1;
+    uint32_t other_key[3] = {};
+    peer other;
+
+    key_for_peer(other_key, host_addr.s_addr, udp_port);
+    other = manager_get_peer(&mgr, host_addr.s_addr, udp_port);
+
+    manager_merge_nodes(&mgr, mgr.key_chain_len, mgr.key, mgr.self);
+    manager_merge_nodes(&mgr, 1, other_key, other);
+
+    uint32_t obj_key[3];
+    node nodes[2];
+    obj_key[0] = mgr.key[0];
+    obj_key[1] = mgr.key[1];
+    obj_key[2] = mgr.key[2];
+    obj_key[2]++;
+    int n = manager_find_owners(&mgr, obj_key, 2, nodes);
+    ASSERT(n == 2, "should have found 2 nodes");
+    ASSERT(nodes[0]->peer == mgr.self, "first peer should be self");
+    ASSERT(nodes[1]->peer == other, "second peer should be other");
+}
+
+void
+__CUT__manager_with_key_find_owners_other()
+{
+    struct in_addr host_addr = {};
+    int udp_port = 1;
+    uint32_t other_key[3] = {};
+    peer other;
+
+    key_for_peer(other_key, host_addr.s_addr, udp_port);
+    other = manager_get_peer(&mgr, host_addr.s_addr, udp_port);
+
+    manager_merge_nodes(&mgr, mgr.key_chain_len, mgr.key, mgr.self);
+    manager_merge_nodes(&mgr, 1, other_key, other);
+
+    uint32_t obj_key[3];
+    node nodes[2];
+    obj_key[0] = other_key[0];
+    obj_key[1] = other_key[1];
+    obj_key[2] = other_key[2];
+    obj_key[2]++;
+    int n = manager_find_owners(&mgr, obj_key, 2, nodes);
+    ASSERT(n == 2, "should have found 2 nodes");
+    ASSERT(nodes[0]->peer == other, "first peer should be other");
+    ASSERT(nodes[1]->peer == mgr.self, "second peer should be self");
+}
+
+void
 __CUT__manager_with_key_add_no_link()
 {
     uint32_t key[3] = {};

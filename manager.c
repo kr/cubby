@@ -356,7 +356,7 @@ manager_find_owners(manager m, uint32_t *key, int n, node *out)
 
         ps[found] = m->nodes.items[i];
         for (int j = found; j; j--) {
-            if (key_distance_cmp(m->key, ps[j - 1]->key, ps[j]->key) < 0) break;
+            if (key_distance_cmp(key, ps[j - 1]->key, ps[j]->key) < 0) break;
             node t = ps[j];
             ps[j] = ps[j - 1];
             ps[j - 1] = t;
