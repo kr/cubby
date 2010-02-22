@@ -51,6 +51,8 @@ static cut_fn cur_takedown = 0;
 static test_output problem_reports = 0;
 static const char *program;
 
+static int assert_generates_failure = 0;
+
 static void
 die(int code, const char *fmt, ...)
 {
@@ -194,7 +196,7 @@ __cut_assert(int success, const char *fmt, ...)
   if (cur_takedown) cur_takedown();
   fflush(stdout);
   fflush(stderr);
-  exit(-1);
+  exit(assert_generates_failure ? -1 : 1);
 }
 
 typedef void(*collect_fn)(void *);
@@ -234,9 +236,12 @@ run_in_child(void *data)
 
     r = dup2(fileno(stdout), fileno(stderr));
     if (r < 0) die(3, "dup2");
+    assert_generates_failure = 0;
     bringup();
     cur_takedown = takedown;
+    assert_generates_failure = 1;
     test();
+    assert_generates_failure = 0;
     takedown();
     fflush(stdout);
     fflush(stderr);
