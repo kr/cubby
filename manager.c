@@ -418,8 +418,11 @@ manager_merge_node(manager mgr, uint32_t *key, peer p)
 {
     for (size_t i = 0; i < mgr->nodes.used; i++) {
         node n = mgr->nodes.items[i];
-        if (n->key == key) {
-            if (n->peer != p) warnx("node conflict %s -> %d:%d & %d:%d");
+        if (key_eq(n->key, key)) {
+            if (n->peer != p) {
+                warnx("node conflict %s -> %d:%d & %d:%d");
+                return -1;
+            }
             n->peer = p;
             return 0;
         }

@@ -240,7 +240,89 @@ __CUT__manager_with_init_check_key_chain_len()
 }
 
 void
+__CUT__manager_with_init_get_peer()
+{
+    struct in_addr host_addr = {};
+    int udp_port = 0;
+    key_for_peer(mgr.key, host_addr.s_addr, udp_port);
+    manager_get_peer(&mgr, host_addr.s_addr, udp_port);
+    ASSERT(mgr.peers_fill == 1, "should be one peer");
+}
+
+void
 __CUT_TAKEDOWN__manager_with_init()
+{
+    unlink(tmp_bundle_name);
+}
+
+void
+__CUT_BRINGUP__manager_with_key()
+{
+    int r;
+
+    initialize_bundles = 1;
+
+    strcpy(tmp_bundle_name, tmp_bundle_name_tpl);
+    int tmp_bundle = mkstemp(tmp_bundle_name);
+
+    r = lseek(tmp_bundle, tmp_bundle_size - 1, SEEK_SET);
+    ASSERT(r == tmp_bundle_size - 1, "error");
+    r = write(tmp_bundle, "\0", 1);
+    ASSERT(r == 1, "error");
+    r = lseek(tmp_bundle, 0, SEEK_SET);
+    ASSERT(r == 0, "error");
+
+    close(tmp_bundle);
+
+    mgr = (struct manager) {};
+    add_bundle(&mgr, tmp_bundle_name);
+
+    r = manager_init(&mgr);
+    ASSERT(r == 0, "error");
+
+    struct in_addr host_addr = {};
+    int udp_port = 0;
+    key_for_peer(mgr.key, host_addr.s_addr, udp_port);
+    mgr.self = manager_get_peer(&mgr, host_addr.s_addr, udp_port);
+    mgr.self->is_local = 1;
+}
+
+void
+__CUT__manager_with_key_merge_node()
+{
+    int r = manager_merge_node(&mgr, mgr.key, mgr.self);
+    ASSERT(r == 0, "should succeed");
+    ASSERT(mgr.nodes.used == 1, "should be 1");
+}
+
+void
+__CUT__manager_with_key_merge_duplicate_node()
+{
+    int r;
+    r = manager_merge_node(&mgr, mgr.key, mgr.self);
+    ASSERT(r == 0, "should succeed");
+    r = manager_merge_node(&mgr, mgr.key, mgr.self);
+    ASSERT(r == 0, "should succeed");
+    ASSERT(mgr.nodes.used == 1, "should still be 1");
+}
+
+void
+__CUT__manager_with_key_merge_nodes()
+{
+    manager_merge_nodes(&mgr, mgr.key_chain_len, mgr.key, mgr.self);
+    ASSERT(mgr.nodes.used == 1, "should be 1");
+}
+
+void
+__CUT__manager_with_key_merge_duplicate_nodes()
+{
+    manager_merge_nodes(&mgr, mgr.key_chain_len, mgr.key, mgr.self);
+    manager_merge_nodes(&mgr, mgr.key_chain_len, mgr.key, mgr.self);
+    ASSERT(mgr.nodes.used == 1, "should still be 1");
+}
+
+void
+__CUT_TAKEDOWN__manager_with_key()
 {
     unlink(tmp_bundle_name);
 }
