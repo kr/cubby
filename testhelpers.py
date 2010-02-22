@@ -134,6 +134,10 @@ class cubbyd_runner:
     return json.loads(self.http_get(*args, **kwargs).decode())
 
   @property
+  def control_info(self):
+    return self.addr, self.control_port
+
+  @property
   def tester_control_info(self):
     if not self._tester_control_port:
       self._tester_control_port = get_free_udp_port()

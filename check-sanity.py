@@ -24,6 +24,6 @@ class TestOne(TestCase):
     )
     response = self.cubby.control_recv()
     self.assertEqual(type(response), Pong)
-    self.assertEqual(response.peers[0].addr, self.cubby.tester_control_info[0])
-    self.assertEqual(response.peers[0].port, self.cubby.tester_control_info[1])
-
+    got_peers = sorted([(x.addr, x.port) for x in response.peers])
+    exp_peers = sorted((self.cubby.tester_control_info, self.cubby.control_info))
+    self.assertEqual(got_peers, exp_peers)
