@@ -160,9 +160,10 @@ class cubbyd_runner:
     assert(addr == (self.addr, self.control_port))
     return payload
 
-  def control_send(self, type, **kw):
+  def control_send(self, type, array=(), **kw):
     packet = type(type=type.type, **kw)
-    self.udp_send(packet.bytes)
+    extra = b''.join([x.bytes for x in array])
+    self.udp_send(packet.bytes + extra)
 
   def control_recv(self):
     return unpack_control_packet(self.udp_recv())

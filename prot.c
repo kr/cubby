@@ -33,6 +33,7 @@ prot_outstanding_link_update(arr a, void *item, size_t index)
     link_progress prog = item;
 
     if (!prog->peer) {
+        // It's done! Lett the callback know.
         prog->cb(prog->manager, prog->key, 0, prog->data);
         return 0; // remove it from the list
     }
