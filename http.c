@@ -173,7 +173,7 @@ http_handle_about_json(struct evhttp_request *req, void *mgr)
 }
 
 static void
-http_handle_admin(struct evhttp_request *req, manager mgr)
+http_handle_control(struct evhttp_request *req, manager mgr)
 {
     evhttp_send_reply(req, HTTP_NOTFOUND, "Not found", 0);
 }
@@ -218,8 +218,8 @@ http_handle_blob(struct evhttp_request *req, manager mgr)
 void
 http_handle_generic(struct evhttp_request *req, void *mgr)
 {
-    if (startswith(req->uri, "/admin/")) {
-        http_handle_admin(req, mgr);
+    if (startswith(req->uri, "/control/")) {
+        http_handle_control(req, mgr);
     } else if (startswith(req->uri, "/file/")) {
         http_handle_blob(req, mgr);
     } else {

@@ -275,7 +275,7 @@ net_init(struct in_addr host_addr, int udp_port, manager mgr)
 
         evhttp_set_gencb(ev_http, http_handle_generic, mgr);
         evhttp_set_cb(ev_http, "/", http_handle_root, mgr);
-        evhttp_set_cb(ev_http, "/admin/about.json",
+        evhttp_set_cb(ev_http, "/control/about.json",
                 http_handle_about_json, mgr);
     }
 
