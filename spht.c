@@ -163,12 +163,13 @@ spht_set(spht h, dirent v)
 
     find_position(h->table, &pos, v->key);
 
-    // Already there.
-    if (pos.exists != INVALID_BUCKET) return 0;
-
-    if (test_deleted(h->table, pos.insert)) --h->ndel;
-
-    sparr_set(h->table, pos.insert, v);
+    // Already there?
+    if (pos.exists != INVALID_BUCKET) {
+        sparr_set(h->table, pos.exists, v);
+    } else {
+        if (test_deleted(h->table, pos.insert)) --h->ndel;
+        sparr_set(h->table, pos.insert, v);
+    }
     return 0;
 }
 

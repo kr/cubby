@@ -490,6 +490,24 @@ __CUT__manager_with_key_add_self_link()
 }
 
 void
+__CUT__manager_with_key_add_link_with_existing_dirent()
+{
+    uint32_t key[3] = {};
+    peer_id id = 12345;
+    dirent de0 = make_dirent(key, 1, 3);
+
+    manager_merge_nodes(&mgr, mgr.key_chain_len, mgr.key, mgr.self);
+
+    int r = spht_set(mgr.directory, de0);
+    ASSERT(r == 0, "spht_set should succeed");
+
+    dirent de = manager_add_links(&mgr, key, 0, 1, &id);
+    de = spht_get(mgr.directory, key);
+    ASSERT(de, "should have a dirent");
+    ASSERT(de->len == 2, "len should be 2, got %d", de->len);
+}
+
+void
 __CUT_TAKEDOWN__manager_with_key()
 {
     unlink(tmp_bundle_name);

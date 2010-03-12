@@ -83,6 +83,25 @@ __CUT__empty_spht_setting_k0_should_work()
 }
 
 void
+__CUT__empty_spht_replace()
+{
+    int r;
+
+    dirent dr0b = make_dirent(k0, 0, 0);
+    ASSERT(!!dr0b, "Just trying to allocate here");
+
+    r = spht_set(h, dr0);
+    ASSERT(!r, "should claim success");
+    ASSERT(spht_fill(h) == 1, "h should contain one thing");
+    ASSERT(spht_get(h, k0) == dr0, "h[k0] should be dr0");
+
+    r = spht_set(h, dr0b);
+    ASSERT(!r, "should claim success");
+    ASSERT(spht_fill(h) == 1, "h should contain one thing");
+    ASSERT(spht_get(h, k0) == dr0b, "h[k0] should be dr0b");
+}
+
+void
 __CUT__empty_spht_setting_k0_should_leave_others()
 {
     int r;

@@ -256,6 +256,24 @@ __CUT__empty_sparr_setting_first_should_leave_others()
 }
 
 void
+__CUT__empty_sparr_replace()
+{
+    int r;
+
+    r = sparr_set(a, 0, (dirent) 7);
+    ASSERT(!r, "should claim success");
+    ASSERT(a->fill == 1, "a should contain one thing");
+    ASSERT(((size_t) sparr_get(a, 0)) == 7, "a[0] should be 7");
+    ASSERT(sparr_test(a, 0), "g[0] should be full");
+
+    r = sparr_set(a, 0, (dirent) 6);
+    ASSERT(!r, "should claim success");
+    ASSERT(a->fill == 1, "a should contain one thing");
+    ASSERT(((size_t) sparr_get(a, 0)) == 6, "a[0] should be 6");
+    ASSERT(sparr_test(a, 0), "g[0] should be full");
+}
+
+void
 __CUT__empty_sparr_deleting_first_should_nop()
 {
     int r;
