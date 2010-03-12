@@ -285,7 +285,7 @@ manager_rebalance_dirent_cb(manager m, uint32_t *key, error_code error,
         // got a LINK message with our new rank.
 
         dirent de = spht_get(m->directory, key);
-        if (!de) return; // should not happen
+        if (!de) return; // This can happen if we actually got a LINK message.
 
         peer_id ids[de->len];
         for (int i = 0; i < de->len; i++) {
@@ -303,6 +303,7 @@ manager_rebalance_dirent_cb(manager m, uint32_t *key, error_code error,
     }
 }
 
+// Give up ownership of this dirent, if applicable.
 static void
 manager_rebalance_dirent(manager mgr, dirent de)
 {
@@ -324,6 +325,7 @@ manager_rebalance_dirent(manager mgr, dirent de)
     prot_send_primary_link(mgr, de, manager_rebalance_dirent_cb, 0);
 }
 
+// Assume ownership of this dirent, if applicable.
 static void
 manager_recover_dirent(manager mgr, dirent de)
 {

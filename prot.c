@@ -134,7 +134,16 @@ prot_send_primary_link(manager m, dirent de, prot_send_link_fn cb, void *data)
 static void
 prot_start_copies(manager m, dirent de)
 {
+    // Continue only if we are the primary owner.
+    if (de->rank != 0) return;
+
     // TODO fill out this stub
+
+    // TODO A node that becomes inactive briefly, then becomes active again,
+    // might still have some or all its files. We should check if we have any
+    // stale pointers to such a node, and, if so, prefer to send the file to
+    // that node. This lets us avoid recopying the file if the node still has
+    // it.
 }
 
 /* This is the meat of the distributed linking algorithm. */
