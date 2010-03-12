@@ -310,38 +310,65 @@ manager_rebalance_dirent(manager mgr, dirent de)
     // Continue only if we are the old owner.
     if (de->rank != 0) return;
 
-    node owner;
-    int n = manager_find_owners(mgr, de->key, 1, &owner,
+    node owners[DIRENT_W];
+    int n = manager_find_owners(mgr, de->key, DIRENT_W, owners,
             manager_find_owners_none);
-    if (n < 1) return warnx("no active peers"); // can't happen
+    if (n < 1) return warnx("no owners"); // can't happen
 
-    // Continue only if the new owner is still bootstrapping.
-    if (owner->peer->state != peer_state_in_rebalance) return;
+    // Check if there are any new bootstrapping owners.
+    int needs_work = 0;
+    for (int i = 0; i < n; i++) {
+        if (!owners[i]->peer->state == peer_state_in_rebalance) {
+            needs_work = 1;
+        }
+    }
 
-    // Assume we are out of range. If this is wrong, our closer neighbor will
-    // correct us.
-    de->rank = DIRENT_W;
+    if (needs_work) {
+        // Assume we are out of range. If this is wrong, our closer neighbor
+        // will correct us.
+        de->rank = DIRENT_W;
 
-    prot_send_primary_link(mgr, de, manager_rebalance_dirent_cb, 0);
+        // We will check for necessary file copies on the other side.
+        prot_send_primary_link(mgr, de, manager_rebalance_dirent_cb, 0);
+    } else {
+        prot_start_copies(mgr, de);
+    }
 }
 
 // Assume ownership of this dirent, if applicable.
 static void
 manager_recover_dirent(manager mgr, dirent de)
 {
-    // Continue only if we aren't already the primary owner.
-    if (de->rank == 1) return;
+    node owners[DIRENT_W], active_owner = 0;
+    int n = manager_find_owners(mgr, de->key, DIRENT_W, owners,
+            manager_find_owners_include_inactive);
+    if (n < 1) return warnx("no owners"); // can't happen
 
-    node owner;
-    int n = manager_find_owners(mgr, de->key, 1, &owner,
-            manager_find_owners_none);
-    if (n < 1) return warnx("no active peers"); // can't happen
+    // Check if there are any broken owners in recovery.
+    int needs_work = 0;
+    for (int i = 0; i < n; i++) {
+        if (node_is_active(owners[i])) {
+            // Find the first active owner.
+            if (!active_owner) active_owner = owners[i];
+        } else if (owners[i]->peer->state == peer_state_in_recovery) {
+            needs_work = 1;
+        }
+    }
 
-    // Continue only if we are the new owner.
-    if (owner->peer != mgr->self) return;
+    if (needs_work) {
+        if (!active_owner) return warnx("no active owners"); // can't happen
 
-    // We will check for necessary file copies on the other side.
-    prot_send_primary_link(mgr, de, manager_rebalance_dirent_cb, 0);
+        // Continue only if we are the (possibly new) owner.
+        if (active_owner->peer != mgr->self) return;
+
+        // We will check for necessary file copies on the other side.
+        prot_send_primary_link(mgr, de, manager_rebalance_dirent_cb, 0);
+    } else {
+        // Continue only if we are the owner.
+        if (de->rank != 0) return;
+
+        prot_start_copies(mgr, de);
+    }
 }
 
 int

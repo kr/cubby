@@ -140,6 +140,10 @@ peer_update(peer p)
         case peer_state_in_rebalance:
             if (!peer_active(p)) p->state = peer_state_needs_recovery;
             break;
+        case peer_state_needs_recovery:
+        case peer_state_in_recovery:
+            if (peer_active(p)) p->state = peer_state_needs_rebalance;
+            break;
         default:
             break;
     }
