@@ -131,7 +131,7 @@ prot_send_primary_link(manager m, dirent de, prot_send_link_fn cb, void *data)
     prot_send_link(m, &closest->peer, de, 0, cb, data);
 }
 
-static void
+void
 prot_start_copies(manager m, dirent de)
 {
     // Continue only if we are the primary owner.

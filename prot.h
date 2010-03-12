@@ -28,4 +28,8 @@ void prot_linked(peer p, uint32_t *key);
 void prot_link(manager m, uint32_t *key, int len, peer_id *peer_ids,
         uint8_t rank, prot_link_fn cb, void *data);
 
+/* Make any copies necessary to maintain sufficient reduncancy for this file.
+ * If we are not the primary owner of de, do nothing. */
+void prot_start_copies(manager m, dirent de);
+
 #endif //prot_h
