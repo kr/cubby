@@ -357,7 +357,8 @@ __CUT__manager_with_key_find_owners_self()
     obj_key[1] = mgr.key[1];
     obj_key[2] = mgr.key[2];
     obj_key[2]++;
-    int n = manager_find_owners(&mgr, obj_key, 2, nodes);
+    int n = manager_find_owners(&mgr, obj_key, 2, nodes,
+            manager_find_owners_none);
     ASSERT(n == 2, "should have found 2 nodes");
     ASSERT(nodes[0]->peer == mgr.self, "first peer should be self");
     ASSERT(nodes[1]->peer == other, "second peer should be other");
@@ -383,8 +384,69 @@ __CUT__manager_with_key_find_owners_other()
     obj_key[1] = other_key[1];
     obj_key[2] = other_key[2];
     obj_key[2]++;
-    int n = manager_find_owners(&mgr, obj_key, 2, nodes);
+    int n = manager_find_owners(&mgr, obj_key, 2, nodes,
+            manager_find_owners_none);
     ASSERT(n == 2, "should have found 2 nodes");
+    ASSERT(nodes[0]->peer == other, "first peer should be other");
+    ASSERT(nodes[1]->peer == mgr.self, "second peer should be self");
+}
+
+// Copied from peer.c
+#define PEER_ACTIVE_INTERVAL (20 * SECOND)
+
+void
+__CUT__manager_with_key_find_owners_skip_inactive()
+{
+    struct in_addr host_addr = {};
+    int udp_port = 1;
+    uint32_t other_key[3] = {};
+    peer other;
+
+    key_for_peer(other_key, host_addr.s_addr, udp_port);
+    other = manager_get_peer(&mgr, host_addr.s_addr, udp_port);
+    other->last_message_from = PEER_ACTIVE_INTERVAL + 10;
+    mgr.slice_start = 5;
+
+    manager_merge_nodes(&mgr, mgr.key_chain_len, mgr.key, mgr.self);
+    manager_merge_nodes(&mgr, 1, other_key, other);
+
+    uint32_t obj_key[3];
+    node nodes[2];
+    obj_key[0] = other_key[0];
+    obj_key[1] = other_key[1];
+    obj_key[2] = other_key[2];
+    obj_key[2]++;
+    int n = manager_find_owners(&mgr, obj_key, 2, nodes,
+            manager_find_owners_none);
+    ASSERT(n == 1, "should have found 1 nodes");
+    ASSERT(nodes[0]->peer == mgr.self, "only peer should be self");
+}
+
+void
+__CUT__manager_with_key_find_owners_include_inactive()
+{
+    struct in_addr host_addr = {};
+    int udp_port = 1;
+    uint32_t other_key[3] = {};
+    peer other;
+
+    key_for_peer(other_key, host_addr.s_addr, udp_port);
+    other = manager_get_peer(&mgr, host_addr.s_addr, udp_port);
+    other->last_message_from = PEER_ACTIVE_INTERVAL + 10;
+    mgr.slice_start = 5;
+
+    manager_merge_nodes(&mgr, mgr.key_chain_len, mgr.key, mgr.self);
+    manager_merge_nodes(&mgr, 1, other_key, other);
+
+    uint32_t obj_key[3];
+    node nodes[2];
+    obj_key[0] = other_key[0];
+    obj_key[1] = other_key[1];
+    obj_key[2] = other_key[2];
+    obj_key[2]++;
+    int n = manager_find_owners(&mgr, obj_key, 2, nodes,
+            manager_find_owners_include_inactive);
+    ASSERT(n == 2, "should have found 2 nodes, got %d", n);
     ASSERT(nodes[0]->peer == other, "first peer should be other");
     ASSERT(nodes[1]->peer == mgr.self, "second peer should be self");
 }

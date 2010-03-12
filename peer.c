@@ -103,7 +103,8 @@ peer_send_pong(peer p)
     manager m = p->manager;
     node closest[PONG_PEER_MAX];
 
-    int n = manager_find_owners(m, m->key, PONG_PEER_MAX, closest);
+    int n = manager_find_owners(m, m->key, PONG_PEER_MAX, closest,
+            manager_find_owners_none);
     cpkt pkt = make_cpkt_pong(0, 0, m, n, closest);
     if (!pkt) return warnx("make_cpkt_pong");
 

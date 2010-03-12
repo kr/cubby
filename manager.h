@@ -84,12 +84,17 @@ int manager_out_any(manager m);
 cpkt manager_out_remove(manager m);
 void manager_out_pushback(manager m, cpkt c);
 
+#define manager_find_owners_none 0
+#define manager_find_owners_include_inactive 1
+
 peer manager_get_peer(manager m, in_addr_t addr, uint16_t port);
 
 /* Fills OUT with at most N nodes in order of distance from KEY. Every node in
    OUT refers to a distinct peer. Returns the number of nodes placed in OUT.
-   This may be less than N if fewer than N suitable nodes exist. */
-int manager_find_owners(manager m, uint32_t *key, int n, node *out);
+   This may be less than N if fewer than N suitable nodes exist.
+   Flags may be manager_find_owners_none or
+   manager_find_owners_include_inactive. */
+int manager_find_owners(manager m, uint32_t *key, int n, node *out, int flags);
 
 dirent manager_add_links(manager m, uint32_t *key, uint8_t rank,
         int len, peer_id *peer_ids);

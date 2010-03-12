@@ -310,7 +310,8 @@ manager_rebalance_dirent(manager mgr, dirent de)
     if (de->rank != 0) return;
 
     node owner;
-    int n = manager_find_owners(mgr, de->key, 1, &owner);
+    int n = manager_find_owners(mgr, de->key, 1, &owner,
+            manager_find_owners_none);
     if (n < 1) return warnx("no active peers"); // can't happen
 
     // Continue only if the new owner is still bootstrapping.
@@ -330,7 +331,8 @@ manager_recover_dirent(manager mgr, dirent de)
     if (de->rank == 1) return;
 
     node owner;
-    int n = manager_find_owners(mgr, de->key, 1, &owner);
+    int n = manager_find_owners(mgr, de->key, 1, &owner,
+            manager_find_owners_none);
     if (n < 1) return warnx("no active peers"); // can't happen
 
     // Continue only if we are the new owner.
@@ -341,13 +343,15 @@ manager_recover_dirent(manager mgr, dirent de)
 }
 
 int
-manager_find_owners(manager m, uint32_t *key, int n, node *out)
+manager_find_owners(manager m, uint32_t *key, int n, node *out, int flags)
 {
     node ps[n + 1];
 
     int found = 0;
     for (int i = 0; i < m->nodes.used; i++) {
-        if (!node_is_active(m->nodes.items[i])) continue;
+        if (!(flags & manager_find_owners_include_inactive)) {
+            if (!node_is_active(m->nodes.items[i])) continue;
+        }
 
         int skip = 0;
         for (int j = 0; j < found; ++j) {

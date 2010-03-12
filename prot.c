@@ -122,7 +122,8 @@ void
 prot_send_primary_link(manager m, dirent de, prot_send_link_fn cb, void *data)
 {
     node closest;
-    int n = manager_find_owners(m, de->key, 1, &closest);
+    int n = manager_find_owners(m, de->key, 1, &closest,
+            manager_find_owners_none);
 
     // can't happen -- should at least find ourselves
     if (!n) return cb(m, de->key, error_code_insufficient_nodes, data);
@@ -144,7 +145,8 @@ prot_link(manager m, uint32_t *key, int len, peer_id *peer_ids, uint8_t rank,
     dirent de;
     if (rank < DIRENT_W) {
         node nodes[rank + 2];
-        int n = manager_find_owners(m, key, rank + 2, nodes);
+        int n = manager_find_owners(m, key, rank + 2, nodes,
+                manager_find_owners_none);
 
         // Oops, they claim we have rank rank, but we don't even know that many
         // distinct nodes. We must be missing some nodes.
