@@ -275,7 +275,8 @@ manager_get_peer(manager m, in_addr_t addr, uint16_t port)
 }
 
 static void
-manager_rebalance_dirent_cb(manager m, uint32_t *key, int error, void *ignore)
+manager_rebalance_dirent_cb(manager m, uint32_t *key, error_code error,
+        void *ignore)
 {
     if (error == 0) {
         // We might need to delete our dirent if we are no longer within

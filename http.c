@@ -73,9 +73,9 @@ http_handle_blob_get(struct evhttp_request *req, manager mgr, uint32_t *k)
 }
 
 static void
-http_put_done(manager m, uint32_t *key, int error, void *req)
+http_put_done(manager m, uint32_t *key, error_code error, void *req)
 {
-    if (error == 0) {
+    if (error == error_code_success) {
         // Oh snap! We just got a file!
         evhttp_send_reply(req, HTTP_OK, "Got it!", 0);
     } else {

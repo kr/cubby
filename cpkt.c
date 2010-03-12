@@ -8,6 +8,7 @@
 #include "prot.h"
 #include "peer.h"
 #include "util.h"
+#include "error_codes.h"
 
 typedef struct cpkt_ping {
     CPKT_COMMON;
@@ -206,7 +207,7 @@ cpkt_pong_handle(cpkt generic, peer p)
 }
 
 static void
-cpkt_link_handle_cb(manager m, uint32_t *key, int error, void *p)
+cpkt_link_handle_cb(manager m, uint32_t *key, error_code error, void *p)
 {
     if (error) return; // just drop it -- the peer can retry if they want
 

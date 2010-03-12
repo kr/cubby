@@ -33,8 +33,8 @@ prot_outstanding_link_update(arr a, void *item, size_t index)
     link_progress prog = item;
 
     if (!prog->peer) {
-        // It's done! Lett the callback know.
-        prog->cb(prog->manager, prog->key, 0, prog->data);
+        // It's done! Let the callback know.
+        prog->cb(prog->manager, prog->key, error_code_success, prog->data);
         return 0; // remove it from the list
     }
 
@@ -44,7 +44,7 @@ prot_outstanding_link_update(arr a, void *item, size_t index)
 
     dirent de = spht_get(prog->manager->directory, prog->key);
     if (!de) { // Wtf? it's gone. Nothing left to do now.
-        prog->cb(prog->manager, prog->key, 2, prog->data);
+        prog->cb(prog->manager, prog->key, error_code_missing_dirent, prog->data);
         return 0; // remove it from the list
     }
 
@@ -53,7 +53,7 @@ prot_outstanding_link_update(arr a, void *item, size_t index)
         prog->last_at = now;
         peer_send_link(prog->peer, de, prog->rank);
     } else if (delta_first > ABANDON_LINK_INTERVAL) {
-        prog->cb(prog->manager, de->key, 1, prog->data);
+        prog->cb(prog->manager, de->key, error_code_no_reply, prog->data);
         return 0; // remove it from the list
     } else if (delta_last > RETRY_LINK_INTERVAL) {
         prog->last_at = now;
@@ -101,7 +101,7 @@ prot_send_link(manager m, peer *to, dirent de, uint8_t rank,
         prot_send_link_fn cb, void *data)
 {
     link_progress prog = malloc(sizeof(struct link_progress));
-    if (!prog) return cb(m, de->key, 1, data);
+    if (!prog) return cb(m, de->key, error_code_no_mem, data);
 
     memset(prog, 0, sizeof(struct link_progress));
 
@@ -125,7 +125,7 @@ prot_send_primary_link(manager m, dirent de, prot_send_link_fn cb, void *data)
     int n = manager_find_owners(m, de->key, 1, &closest);
 
     // can't happen -- should at least find ourselves
-    if (!n) return cb(m, de->key, 0, data);
+    if (!n) return cb(m, de->key, error_code_insufficient_nodes, data);
 
     prot_send_link(m, &closest->peer, de, 0, cb, data);
 }
@@ -150,23 +150,23 @@ prot_link(manager m, uint32_t *key, int len, peer_id *peer_ids, uint8_t rank,
         // distinct nodes. We must be missing some nodes.
         if (rank >= n) {
           // TODO something useful
-          return cb(m, key, 3, data);
+          return cb(m, key, error_code_insufficient_nodes, data);
         }
 
         // We seem to disagree about our proper rank.
         if (!node_is_local(nodes[rank])) {
           // TODO something useful
-          return cb(m, key, 2, data);
+          return cb(m, key, error_code_rank_mismatch, data);
         }
 
         node next = nodes[rank + 1];
 
         // store entry for T under key K at rank R
         de = manager_add_links(m, key, rank, len, peer_ids);
-        if (!de) return cb(m, key, 1, data);
+        if (!de) return cb(m, key, error_code_add_links, data);
 
         // No more nodes? We are last in the known order of succession.
-        if (rank + 1 >= n) return cb(m, key, 0, data);
+        if (rank + 1 >= n) return cb(m, key, error_code_success, data);
 
         // LINK(K, T, R + 1) -> C
         // when LINKED(K) <- C
@@ -183,6 +183,6 @@ prot_link(manager m, uint32_t *key, int len, peer_id *peer_ids, uint8_t rank,
         // when LINKED(K) <- C
         // LINKED(K) -> A
     } else {
-        return cb(m, key, 0, data);
+        return cb(m, key, error_code_success, data);
     }
 }

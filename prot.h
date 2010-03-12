@@ -3,12 +3,13 @@
 #ifndef prot_h
 #define prot_h
 
+#include "error_codes.h"
 #include "manager.h"
 
 #define DIRENT_W 2
 
-typedef void(*prot_send_link_fn)(manager, uint32_t *, int, void *);
-typedef void(*prot_link_fn)(manager, uint32_t *, int, void *);
+typedef void(*prot_send_link_fn)(manager, uint32_t *, error_code, void *);
+typedef void(*prot_link_fn)(manager, uint32_t *, error_code, void *);
 
 void prot_init();
 

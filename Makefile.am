@@ -24,6 +24,7 @@ shared_sources = \
   bundle.c bundle.h \
   cpkt.c cpkt.h \
   dirent.c dirent.h \
+  error_codes.h \
   heap.c heap.h \
   key.c key.h \
   manager.c manager.h \
